@@ -1,4 +1,10 @@
-# Release
+# Release Process
+
+Historical release notes live next to this process doc:
+
+- [0.3.8: Board Hub Guardrails](0.3.8.md)
+- [0.3.7: Goalmaxxed](0.3.7.md)
+- [0.3.5: Subgoals, Parallel Agents, and Dark Mode](0.3.5.md)
 
 GoalBuddy publishes the `goalbuddy` npm package from GitHub Actions using npm trusted publishing. This avoids long-lived npm write tokens and lets npm generate provenance for future releases.
 

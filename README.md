@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://goalbuddy.dev">
-    <img src="internal/assets/goalbuddy-v0.3.7-release.png" alt="GoalBuddy v0.3.7 release: Goalmaxxed." width="100%">
+    <img src="internal/assets/goalbuddy-readme-hero.png" alt="GoalBuddy local board and agent workflow." width="100%">
   </a>
 </p>
 
@@ -144,7 +144,7 @@ Multiple local boards reuse one readable `goalbuddy.localhost` hub with an in-he
 
 Custom external integrations should be built as ordinary repo work with a concrete implementation plan, not installed from a GoalBuddy catalog.
 
-See [GoalBuddy 0.3.8: Board Hub Guardrails](RELEASE-0.3.8.md) for the latest release notes.
+See [GoalBuddy 0.3.8: Board Hub Guardrails](docs/releases/0.3.8.md) for the latest release notes.
 
 <p align="center">
   <img src="internal/assets/goalbuddy-live-board.jpg" alt="GoalBuddy local live board open next to Codex while Scout, Judge, and Worker tasks populate." width="100%">
@@ -164,7 +164,7 @@ GoalBuddy is MIT licensed and published on npm.
 
 The implementation lives in this repo, but the happy path is intentionally tiny: install it, run Goal Prep, then let `/goal` work from the generated files.
 
-For release process details, see [RELEASE.md](RELEASE.md).
+For release process details, see [docs/releases](docs/releases/README.md).
 
 ## Star History
 

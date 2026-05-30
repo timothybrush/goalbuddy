@@ -142,8 +142,8 @@ export function buildColumns(tasks) {
     byColumn.get(task.column).push(task);
   }
 
-  for (const columnTasks of byColumn.values()) {
-    columnTasks.sort((left, right) => taskSortKey(left).localeCompare(taskSortKey(right)));
+  for (const [columnId, columnTasks] of byColumn.entries()) {
+    columnTasks.sort((left, right) => compareColumnTasks(columnId, left, right));
   }
 
   return [
@@ -320,6 +320,12 @@ function columnForStatus(status) {
 function taskSortKey(task) {
   const rank = task.status === "active" ? "0" : task.status === "queued" ? "1" : task.status === "blocked" ? "2" : "3";
   return `${rank}:${task.id}`;
+}
+
+function compareColumnTasks(columnId, left, right) {
+  const order = taskSortKey(left).localeCompare(taskSortKey(right));
+  if (columnId === "completed") return -order;
+  return order;
 }
 
 function normalizeStringList(value) {

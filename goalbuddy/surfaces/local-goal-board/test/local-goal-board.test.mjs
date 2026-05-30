@@ -4,7 +4,7 @@ import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } f
 import { spawnSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { createBoardPayload, writeBoardApp } from "../scripts/lib/goal-board.mjs";
+import { buildColumns, createBoardPayload, writeBoardApp } from "../scripts/lib/goal-board.mjs";
 import { parseArgs, startBoardServer } from "../scripts/local-goal-board.mjs";
 
 test("normalizes a dense goal into local board columns", () => {
@@ -21,6 +21,18 @@ test("normalizes a dense goal into local board columns", () => {
 
   const scout = payload.tasks.find((task) => task.id === "T001");
   assert.equal(scout.receipt.summary, "T001 completed during the progressive board motion demo.");
+});
+
+test("orders completed cards newest first while preserving queued order", () => {
+  const columns = buildColumns([
+    { id: "T001", column: "completed", status: "done" },
+    { id: "T002", column: "todo", status: "queued" },
+    { id: "T003", column: "completed", status: "done" },
+    { id: "T004", column: "todo", status: "queued" },
+  ]);
+
+  assert.deepEqual(columns.find((column) => column.id === "todo").tasks.map((task) => task.id), ["T002", "T004"]);
+  assert.deepEqual(columns.find((column) => column.id === "completed").tasks.map((task) => task.id), ["T003", "T001"]);
 });
 
 test("loads depth-1 subgoal boards into parent task payloads", () => {

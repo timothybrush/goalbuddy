@@ -813,6 +813,95 @@ test("plugin install removes stale personal Codex GoalBuddy skills", () => {
   }
 });
 
+test("reset removes only GoalBuddy-owned Codex runtime surfaces", () => {
+  const root = mkdtempSync(join(tmpdir(), "goal-maker-cli-test-"));
+  try {
+    const codexHome = join(root, "codex-home");
+    const configPath = join(codexHome, "config.toml");
+    mkdirSync(codexHome, { recursive: true });
+    writeFileSync(configPath, [
+      '[plugins."goalbuddy@goalbuddy"]',
+      "enabled = true",
+      "",
+      '[plugins."goalbuddy@goalbuddy".settings]',
+      'token = "remove-me"',
+      "",
+      '[plugins."github@openai-curated"]',
+      "enabled = true",
+      "",
+      "[marketplaces.goalbuddy]",
+      'source = "tolibear/goalbuddy"',
+      'source_type = "git"',
+      "",
+      "[marketplaces.goalbuddy.settings]",
+      'token = "remove-me-too"',
+      "",
+      "[marketplaces.other]",
+      'source = "openai/curated"',
+      "",
+    ].join("\n"));
+
+    const cacheRoot = join(codexHome, "plugins", "cache", "goalbuddy", "goalbuddy", packageVersion);
+    mkdirSync(cacheRoot, { recursive: true });
+    writeFileSync(join(cacheRoot, "sentinel.txt"), "cached\n");
+
+    const agentsRoot = join(codexHome, "agents");
+    mkdirSync(agentsRoot, { recursive: true });
+    for (const file of ["goal_judge.toml", "goal_scout.toml", "other.toml"]) {
+      writeFileSync(join(agentsRoot, file), `${file}\n`);
+    }
+    mkdirSync(join(agentsRoot, "goal_worker.toml"), { recursive: true });
+    writeFileSync(join(agentsRoot, "goal_worker.toml", "sentinel.txt"), "corrupt agent path\n");
+
+    const staleSkill = join(codexHome, "skills", "goalbuddy");
+    const staleAlias = join(codexHome, "skills", "goal-maker");
+    mkdirSync(staleSkill, { recursive: true });
+    mkdirSync(staleAlias, { recursive: true });
+    writeFileSync(join(staleSkill, "SKILL.md"), "stale GoalBuddy skill\n");
+    writeFileSync(join(staleAlias, "SKILL.md"), "stale Goal Maker alias\n");
+
+    const reset = runGoalMaker(["reset", "--target", "codex", "--codex-home", codexHome, "--json"]);
+    assert.equal(reset.status, 0, reset.stderr || reset.stdout);
+    const report = JSON.parse(reset.stdout);
+    assert.deepEqual(report.removed_config_sections, [
+      '[plugins."goalbuddy@goalbuddy"]',
+      "[marketplaces.goalbuddy]",
+    ]);
+    assert.match(report.removed_plugin_cache_paths[0], pathSuffixPattern("plugins", "cache", "goalbuddy"));
+    assert.equal(report.removed_agents.length, 3);
+    assert.equal(report.removed_legacy_skill_paths.length, 2);
+
+    const config = readFileSync(configPath, "utf8");
+    assert.doesNotMatch(config, /goalbuddy@goalbuddy/);
+    assert.doesNotMatch(config, /\[marketplaces\.goalbuddy\]/);
+    assert.doesNotMatch(config, /remove-me/);
+    assert.doesNotMatch(config, /remove-me-too/);
+    assert.match(config, /\[plugins\."github@openai-curated"\]/);
+    assert.match(config, /\[marketplaces\.other\]/);
+    assert.equal(existsSync(join(codexHome, "plugins", "cache", "goalbuddy")), false);
+    assert.equal(existsSync(join(agentsRoot, "goal_worker.toml")), false);
+    assert.equal(existsSync(join(agentsRoot, "other.toml")), true);
+    assert.equal(existsSync(staleSkill), false);
+    assert.equal(existsSync(staleAlias), false);
+
+    const secondReset = runGoalMaker(["reset", "--codex-home", codexHome, "--json"]);
+    assert.equal(secondReset.status, 0, secondReset.stderr || secondReset.stdout);
+    const secondReport = JSON.parse(secondReset.stdout);
+    assert.deepEqual(secondReport.removed_config_sections, []);
+    assert.deepEqual(secondReport.removed_plugin_cache_paths, []);
+    assert.deepEqual(secondReport.removed_agents, []);
+    assert.deepEqual(secondReport.removed_legacy_skill_paths, []);
+
+    const doctor = runGoalMaker(["doctor", "--codex-home", codexHome], { env: fakeCodexEnv(root) });
+    assert.equal(doctor.status, 1, doctor.stderr || doctor.stdout);
+    const doctorReport = JSON.parse(doctor.stdout);
+    assert.deepEqual(doctorReport.installed_agents, []);
+    assert.deepEqual(doctorReport.stale_agents, []);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("plugin install ignores non-version cache directories", () => {
   const root = mkdtempSync(join(tmpdir(), "goal-maker-cli-test-"));
   try {

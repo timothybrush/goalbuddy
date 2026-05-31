@@ -111,6 +111,17 @@ async function main() {
         doctorClaude();
       }
       break;
+    case "reset":
+      if (wantsHelp()) {
+        usage();
+        break;
+      }
+      if (targetMode() !== "codex") {
+        console.error("Reset currently supports --target codex only.");
+        process.exit(2);
+      }
+      resetCodex();
+      break;
     case "check-update":
     case "update-check":
       checkUpdate();
@@ -203,6 +214,7 @@ Usage:
   ${canonicalCliName} update [--target claude|codex] [--claude-home <path>] [--codex-home <path>] [--json]
   ${canonicalCliName} agents [--target claude|codex] [--claude-home <path>] [--codex-home <path>] [--force]
   ${canonicalCliName} doctor [--target claude|codex] [--claude-home <path>] [--codex-home <path>] [--goal-ready]
+  ${canonicalCliName} reset --target codex [--codex-home <path>] [--json]
   ${canonicalCliName} check-update [--json]
   ${canonicalCliName} board <docs/goals/slug> [--host <host>] [--port <port>] [--once] [--json]
   ${canonicalCliName} prompt <docs/goals/slug> [--task T###] [--board <path/to/state.yaml>] [--json]
@@ -814,8 +826,95 @@ function cleanupLegacyCodexSkills() {
   return removed;
 }
 
+function resetCodex() {
+  const configPath = join(codexHome(), "config.toml");
+  const removedConfigSections = [];
+  if (existsSync(configPath)) {
+    const existing = readFileSync(configPath, "utf8");
+    let updated = existing;
+    for (const header of [`[plugins."${pluginName}@${pluginName}"]`, `[marketplaces.${pluginName}]`]) {
+      const next = removeTomlTable(updated, header);
+      if (next !== updated) {
+        removedConfigSections.push(header);
+        updated = next;
+      }
+    }
+    if (updated !== existing) writeFileSync(configPath, updated);
+  }
+
+  const removedPluginCachePaths = [];
+  const cacheRoot = pluginCacheOwnerRoot();
+  if (existsSync(cacheRoot)) {
+    rmSync(cacheRoot, { recursive: true, force: true });
+    removedPluginCachePaths.push(cacheRoot);
+  }
+
+  const removedAgents = [];
+  const agentsRoot = join(codexHome(), "agents");
+  for (const file of requiredAgentFiles) {
+    const path = join(agentsRoot, file);
+    if (!existsSync(path)) continue;
+    rmSync(path, { recursive: true, force: true });
+    removedAgents.push(path);
+  }
+
+  const removedLegacySkillPaths = cleanupLegacyCodexSkills();
+  const report = {
+    reset: true,
+    target: "codex",
+    codex_home: codexHome(),
+    config_path: configPath,
+    removed_config_sections: removedConfigSections,
+    removed_plugin_cache_paths: removedPluginCachePaths,
+    removed_agents: removedAgents,
+    removed_legacy_skill_paths: removedLegacySkillPaths,
+  };
+
+  if (hasFlag("--json")) {
+    printJson(report);
+    return report;
+  }
+
+  console.log(`Reset ${canonicalProductName} Codex-owned runtime files`);
+  console.log(`Config sections: ${removedConfigSections.length ? removedConfigSections.join(", ") : "none"}`);
+  console.log(`Plugin cache: ${removedPluginCachePaths.length ? removedPluginCachePaths.join(", ") : "none"}`);
+  console.log(`Agents: ${removedAgents.length ? removedAgents.join(", ") : "none"}`);
+  console.log(`Legacy personal skills: ${removedLegacySkillPaths.length ? removedLegacySkillPaths.join(", ") : "none"}`);
+  return report;
+}
+
+function removeTomlTable(text, header) {
+  const normalized = text.endsWith("\n") || text.length === 0 ? text : `${text}\n`;
+  const lines = normalized.split("\n");
+  const output = [];
+  let skipping = false;
+  let removed = false;
+  const descendantPrefix = `${header.slice(0, -1)}.`;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed === header || trimmed.startsWith(descendantPrefix)) {
+      skipping = true;
+      removed = true;
+      continue;
+    }
+    if (skipping && /^\s*\[/.test(line)) {
+      skipping = trimmed.startsWith(descendantPrefix);
+      if (skipping) continue;
+    }
+    if (!skipping) output.push(line);
+  }
+
+  if (!removed) return text;
+  return output.join("\n").replace(/\n{3,}/g, "\n\n").replace(/\n*$/, "\n");
+}
+
+function pluginCacheOwnerRoot() {
+  return join(codexHome(), "plugins", "cache", pluginName);
+}
+
 function pluginCacheRoot(version) {
-  return join(codexHome(), "plugins", "cache", pluginName, pluginName, version);
+  return join(pluginCacheOwnerRoot(), pluginName, version);
 }
 
 function enablePluginConfig() {

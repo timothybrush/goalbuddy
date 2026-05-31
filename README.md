@@ -63,6 +63,14 @@ To verify a Codex install:
 npx goalbuddy doctor --target codex --goal-ready
 ```
 
+To remove GoalBuddy-owned Codex runtime surfaces:
+
+```bash
+npx goalbuddy reset --target codex
+```
+
+Native `codex plugin remove goalbuddy@goalbuddy` only removes the native plugin surface. GoalBuddy also owns the `goal_*.toml` agent files it installed, its Codex plugin cache, its marketplace entry, and old personal skill folders from earlier installs. Use `goalbuddy reset --target codex` when you want those GoalBuddy-owned files removed too.
+
 ## What It Creates
 
 ```text

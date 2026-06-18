@@ -25,6 +25,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./styles.css">
+    <script>
+      if (!window.matchMedia || !matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        document.documentElement.classList.add("js-anim");
+      }
+    </script>
   </head>
   <body>
     <main class="site-shell" id="top">
@@ -53,7 +58,7 @@
       </header>
 
       <section class="hero" aria-labelledby="hero-title">
-        <div class="hero-copy" data-animate="hero-copy">
+        <div class="hero-copy" data-stagger>
           <p class="eyebrow">A /goal operating system for long runs</p>
           <h1 id="hero-title">
             <span>Give /goal</span>
@@ -74,7 +79,7 @@
           </div>
         </div>
 
-        <div class="hero-visual" data-animate="hero-visual">
+        <div class="hero-visual" data-animate>
           <div class="command-window" aria-label="Goal Buddy terminal preview">
             <div class="window-bar" aria-hidden="true">
               <span></span>
@@ -96,7 +101,20 @@
         </div>
       </section>
 
-      <section class="principles" aria-label="Goal Buddy principles">
+      <section class="social-proof" aria-label="Loved by teams at" data-animate>
+        <p>Loved by teams at</p>
+        <ul>
+          <li><img class="social-proof-logo social-proof-logo-openai" src="./assets/social-proof/openai.png" alt="OpenAI"></li>
+          <li><img class="social-proof-logo social-proof-logo-microsoft" src="./assets/social-proof/microsoft.png" alt="Microsoft"></li>
+          <li><img class="social-proof-logo social-proof-logo-shopify" src="./assets/social-proof/shopify.png" alt="Shopify"></li>
+          <li><img class="social-proof-logo social-proof-logo-zendesk" src="./assets/social-proof/zendesk.png" alt="Zendesk"></li>
+          <li><img class="social-proof-logo social-proof-logo-tencent" src="./assets/social-proof/tencent.png" alt="Tencent"></li>
+          <li><img class="social-proof-logo social-proof-logo-sentry" src="./assets/social-proof/sentry.png" alt="Sentry"></li>
+          <li><img class="social-proof-logo social-proof-logo-tripcom" src="./assets/social-proof/tripcom.png" alt="Trip.com"></li>
+        </ul>
+      </section>
+
+      <section class="principles" aria-label="Goal Buddy principles" data-stagger>
         <article>
           <i data-lucide="circle-dot"></i>
           <h2>Compile the board</h2>
@@ -115,13 +133,13 @@
       </section>
 
       <section class="demo-section" id="demo" aria-labelledby="demo-title">
-        <div class="section-intro">
+        <div class="section-intro" data-animate>
           <h2 id="demo-title">Watch the board appear while your AI agent keeps working.</h2>
           <p>
             GoalBuddy opens a local live board before the task list is finished, so the work becomes visible as Scout, Judge, and Worker tasks populate.
           </p>
         </div>
-        <div class="demo-frame" aria-label="GoalBuddy local live board demo">
+        <div class="demo-frame" aria-label="GoalBuddy local live board demo" data-animate>
           <div class="demo-bar" aria-hidden="true">
             <span></span>
             <span></span>
@@ -142,7 +160,7 @@
 
       <section class="workflow" id="workflow" aria-labelledby="workflow-title">
         <div class="section-kicker">Scout, Judge, Worker</div>
-        <div class="section-intro">
+        <div class="section-intro" data-animate>
           <h2 id="workflow-title">A bounded loop for long /goal runs.</h2>
           <p>
             Goal Buddy separates mapping, decision, and implementation so /goal can continue from explicit state and keep checking the same finish line every turn.
@@ -150,10 +168,10 @@
         </div>
 
         <div class="workflow-showcase">
-          <div class="agent-spotlight" aria-label="Scout sub-agent">
+          <div class="agent-spotlight" aria-label="Scout sub-agent" data-animate>
             <img src="./assets/goalbuddy-agent-scout-alpha.png" alt="Scout sub-agent Goal Buddy with explorer gear">
           </div>
-          <div class="agent-rail" data-animate="agent-rail">
+          <div class="agent-rail" data-stagger>
             <article>
               <div class="agent-icon"><i data-lucide="map"></i></div>
               <span>Scout</span>
@@ -177,7 +195,7 @@
       </section>
 
       <section class="local-system" id="local" aria-labelledby="local-title">
-        <div class="local-copy">
+        <div class="local-copy" data-animate>
           <div class="section-kicker">Local truth</div>
           <h2 id="local-title">Repo files stay authoritative.</h2>
           <p>
@@ -186,7 +204,7 @@
           <img class="local-character" src="./assets/goalbuddy-agent-judge-alpha.png" alt="Judge sub-agent Goal Buddy holding a verdict clipboard">
         </div>
 
-        <div class="file-grid">
+        <div class="file-grid" data-stagger>
           <article class="file-card file-goal">
             <i data-lucide="file-text"></i>
           <h3>goal.md</h3>
@@ -218,11 +236,11 @@
       </section>
 
       <section class="sequence" aria-labelledby="sequence-title">
-        <div class="section-intro">
+        <div class="section-intro" data-animate>
           <h2 id="sequence-title">State advances only after evidence.</h2>
           <p>Each role writes enough information for the next role to continue, and verification gates completion claims.</p>
         </div>
-        <ol class="sequence-list">
+        <ol class="sequence-list" data-stagger>
           <li>
             <i data-lucide="message-square"></i>
             <span>Capture intent</span>
@@ -248,7 +266,7 @@
 
       <section class="proof-system" id="proof" aria-labelledby="proof-title">
         <div class="section-kicker">Goal pressure</div>
-        <div class="section-intro">
+        <div class="section-intro" data-animate>
           <h2 id="proof-title">Finish only when the oracle says the outcome is real.</h2>
           <p>GoalBuddy keeps the model small: one local board, one active task, one receipt trail, and a final audit that maps evidence back to the original owner outcome.</p>
           <button class="copy-command proof-command proof-bulk-command" type="button" data-copy="npx goalbuddy board docs/goals/<slug>">
@@ -256,7 +274,7 @@
             <span>Copy</span>
           </button>
         </div>
-        <div class="proof-grid">
+        <div class="proof-grid" data-stagger>
           <article>
             <i data-lucide="crosshair"></i>
             <h3>Goal oracle</h3>
@@ -290,9 +308,9 @@
         </div>
       </section>
 
-      <img class="final-character" src="./assets/goalbuddy-agent-worker-alpha.png" alt="Worker sub-agent Goal Buddy with a construction helmet">
+      <img class="final-character" src="./assets/goalbuddy-agent-worker-alpha.png" alt="Worker sub-agent Goal Buddy with a construction helmet" data-animate>
 
-      <section class="final-cta" aria-labelledby="cta-title">
+      <section class="final-cta" aria-labelledby="cta-title" data-animate>
         <div>
           <h2 id="cta-title">Give /goal a board, receipts, and a proof loop.</h2>
           <p>MIT licensed. Dependency-free runtime. Built around local goal.md and state.yaml files.</p>
@@ -304,7 +322,7 @@
       </section>
 
       <section class="star-history" aria-labelledby="star-history-title">
-        <div class="section-intro">
+        <div class="section-intro" data-animate>
           <h2 id="star-history-title">Star History</h2>
           <p>Track GoalBuddy’s open source momentum over time.</p>
         </div>

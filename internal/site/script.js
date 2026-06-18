@@ -2,6 +2,28 @@ if (window.lucide) {
   window.lucide.createIcons();
 }
 
+// Scroll-reveal entrance animations. Elements are pre-hidden via the `.js-anim`
+// class (set in <head>); reveal them as they enter the viewport.
+const revealEls = document.querySelectorAll("[data-animate], [data-stagger]");
+if (revealEls.length) {
+  if ("IntersectionObserver" in window) {
+    const revealObserver = new IntersectionObserver(
+      (entries, observer) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.08 }
+    );
+    revealEls.forEach((el) => revealObserver.observe(el));
+  } else {
+    revealEls.forEach((el) => el.classList.add("is-visible"));
+  }
+}
+
 const toast = document.createElement("div");
 toast.className = "copy-toast";
 toast.setAttribute("role", "status");

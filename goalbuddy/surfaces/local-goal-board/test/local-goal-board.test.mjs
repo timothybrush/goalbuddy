@@ -35,6 +35,59 @@ test("orders completed cards newest first while preserving queued order", () => 
   assert.deepEqual(columns.find((column) => column.id === "completed").tasks.map((task) => task.id), ["T003", "T001"]);
 });
 
+test("renders multiple active tasks in the in-progress column", () => {
+  const root = mkdtempSync(join(tmpdir(), "goalbuddy-multiple-active-"));
+  try {
+    const goalDir = join(root, "parallel-workers");
+    mkdirSync(join(goalDir, "notes"), { recursive: true });
+    writeFileSync(join(goalDir, "state.yaml"), `version: 2
+goal:
+  title: "Parallel workers"
+  slug: "parallel-workers"
+  kind: specific
+  tranche: "Render disjoint active workers."
+  status: active
+active_task: T001
+tasks:
+  - id: T001
+    type: worker
+    assignee: Worker A
+    status: active
+    objective: "Patch the board parser."
+    allowed_files:
+      - goalbuddy/surfaces/local-goal-board/scripts/lib/goal-board.mjs
+    verify:
+      - node --test goalbuddy/surfaces/local-goal-board/test/local-goal-board.test.mjs
+    stop_if:
+      - "Need files outside allowed_files."
+    receipt: null
+  - id: T002
+    type: worker
+    assignee: Worker B
+    status: active
+    objective: "Patch the board tests."
+    allowed_files:
+      - goalbuddy/surfaces/local-goal-board/test/local-goal-board.test.mjs
+    verify:
+      - node --test goalbuddy/surfaces/local-goal-board/test/local-goal-board.test.mjs
+    stop_if:
+      - "Need files outside allowed_files."
+    receipt: null
+`);
+
+    const payload = createBoardPayload(goalDir);
+    assert.equal(payload.goal.activeTask, "T001");
+    assert.equal(payload.counts.inProgress, 2);
+    assert.deepEqual(
+      payload.columns.find((column) => column.id === "in-progress").tasks.map((task) => task.id),
+      ["T001", "T002"],
+    );
+    assert.deepEqual(payload.tasks.filter((task) => task.active).map((task) => task.id), ["T001", "T002"]);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("loads depth-1 subgoal boards into parent task payloads", () => {
   const payload = createBoardPayload(resolve("goalbuddy/surfaces/local-goal-board/examples/subgoal-parent"));
   const parentTask = payload.tasks.find((task) => task.id === "T004");

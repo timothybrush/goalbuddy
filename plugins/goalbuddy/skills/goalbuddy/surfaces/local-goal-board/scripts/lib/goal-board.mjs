@@ -88,9 +88,6 @@ export function normalizeGoalBoard(document, goalDir = "<memory>") {
 
   const tasks = document.tasks.map((task, index) => normalizeTask(task, index));
   const activeTasks = tasks.filter((task) => task.status === "active");
-  if (activeTasks.length > 1) {
-    throw new GoalBoardError("Goal state has more than one active task.");
-  }
 
   return {
     goalDir,
@@ -148,7 +145,7 @@ export function buildColumns(tasks) {
 
   return [
     { id: "todo", title: "Todo", description: "Queued work ready to pull", tasks: byColumn.get("todo") },
-    { id: "in-progress", title: "In Progress", description: "The active task", tasks: byColumn.get("in-progress") },
+    { id: "in-progress", title: "In Progress", description: "Active task work", tasks: byColumn.get("in-progress") },
     { id: "blocked", title: "Blocked", description: "Needs unblock or a smaller slice", tasks: byColumn.get("blocked") },
     { id: "completed", title: "Completed", description: "Receipted work", tasks: byColumn.get("completed") },
   ];

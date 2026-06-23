@@ -152,7 +152,7 @@ Multiple local boards reuse one readable `goalbuddy.localhost` hub with an in-he
 
 Custom external integrations should be built as ordinary repo work with a concrete implementation plan, not installed from a GoalBuddy catalog.
 
-See [GoalBuddy 0.3.8: Board Hub Guardrails](docs/releases/0.3.8.md) for the latest release notes.
+See [GoalBuddy 0.3.9: Marketplace and Board Runtime Polish](docs/releases/0.3.9.md) for the latest release notes.
 
 <p align="center">
   <img src="internal/assets/goalbuddy-live-board.jpg" alt="GoalBuddy local live board open next to Codex while Scout, Judge, and Worker tasks populate." width="100%">

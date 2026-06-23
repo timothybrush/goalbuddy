@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.9 — Marketplace and Board Runtime Polish (2026-06-23)
+
+- **Made Claude marketplace install discoverable.** The repo now ships a root `.claude-plugin/marketplace.json`, keeps it in the npm package allowlist, and validates marketplace install flow alongside the existing plugin manifest checks.
+- **Made `/goal-prep` install-channel agnostic.** Model-invoked board, prompt, and parallel-plan commands now use bundled skill scripts instead of assuming a global `goalbuddy` or `npx goalbuddy` binary. Update and agent guidance now points users back to their actual install channel.
+- **Stopped local-board flicker during task transitions.** The board watcher now coalesces rapid `state.yaml` writes before streaming updates, avoiding transient “more than one active task” errors during normal multi-step transitions.
+- **Let the board render valid parallel work.** The local board now renders multiple active tasks in the In Progress column instead of refusing to parse the whole board, while the stricter `check-goal-state` invariant remains available for board validation.
+- **Added exact-approval wait guidance.** GoalBuddy now has a terminal waiting shape for exact human approval gates: ask once, preserve the required reply, set `waiting_for_user_approval: true`, and stop until the user replies.
+- **Added PM-owned board health stewardship.** Goal Prep now explains the safe steward model: use the bundled checker and live board API to repair GoalBuddy control files only, without introducing an always-on implementation actor.
+
 ## 0.3.8 — Board Hub Guardrails (2026-05-29)
 
 - **Clarified multi-board hub recovery.** Unregistered board URLs now explain that a `/slug/` 404 does not mean the `41737` process is stale; agents should verify `/api/boards` and register the new goal on the same hub before stopping any process. Release checks now include the local board surface tests.

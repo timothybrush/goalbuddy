@@ -2,6 +2,7 @@
 
 Historical release notes live next to this process doc:
 
+- [0.3.9: Marketplace and Board Runtime Polish](0.3.9.md)
 - [0.3.8: Board Hub Guardrails](0.3.8.md)
 - [0.3.7: Goalmaxxed](0.3.7.md)
 - [0.3.5: Subgoals, Parallel Agents, and Dark Mode](0.3.5.md)

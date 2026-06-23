@@ -2,7 +2,7 @@
 
 GoalBuddy packages the canonical `goal-prep` skill as a plugin so teams can install the reusable workflow in **Codex** and **Claude Code**, while keeping the npm CLI for local setup, doctor checks, and the built-in local board surface.
 
-Version 0.3.8 keeps the Goalmaxxed core and adds board-hub guardrails so agents reuse the shared local board hub instead of stopping it after an unregistered board URL returns 404.
+Version 0.3.9 keeps the Goalmaxxed core and hardens marketplace installs, local board rendering, and PM runtime guidance for approval waits and board-health checks.
 
 ## What It Contains
 

@@ -422,9 +422,20 @@ receipt:
   decision: "approved"
   full_outcome_complete: false
   rationale: "Router coverage is verified; continue with the next PM-selected work package."
+  worker_package:
+    objective: "Add regression coverage for invoice.paid routing."
+    allowed_files:
+      - src/billing/router.ts
+      - test/billing/router.test.ts
+    verify:
+      - npm test -- test/billing/router.test.ts
+    stop_if:
+      - "Need files outside allowed_files."
   blocked_tasks:
     - T005
 ```
+
+When a Judge decision selects or approves the next Worker task, `worker_package` carries the exact Worker spec; the PM copies it onto the Worker task card. When no Worker follows, `worker_package` is null.
 
 Worker receipt:
 

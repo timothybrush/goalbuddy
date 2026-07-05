@@ -255,6 +255,7 @@ function receiptSchema(role) {
       decision: "approved | rejected | approve_subgoal | reject_subgoal | not_complete | complete",
       full_outcome_complete: false,
       rationale: "<=120 words>",
+      worker_package: { objective: "", allowed_files: [], verify: [], stop_if: [] },
       evidence: [],
       subgoal_contract: null,
       parallel_safety: null,

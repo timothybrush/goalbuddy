@@ -1292,3 +1292,10 @@ test("errors when a path option is missing its value", () => {
   assert.equal(result.status, 2);
   assert.match(result.stderr, /Missing value for --codex-home/);
 });
+
+test("judge receipt contract includes worker_package in every surface", () => {
+  const tomlSchema = receiptContractSchema("goalbuddy/agents/goal_judge.toml");
+  const mdSchema = receiptContractSchema("plugins/goalbuddy/agents/goal-judge.md");
+  assert.deepEqual(Object.keys(tomlSchema.worker_package), ["objective", "allowed_files", "verify", "stop_if"]);
+  assert.deepEqual(mdSchema.worker_package, tomlSchema.worker_package);
+});

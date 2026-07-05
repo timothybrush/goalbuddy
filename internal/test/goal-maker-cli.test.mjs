@@ -212,9 +212,9 @@ test("bundled agent contracts stay strict and receipt-shaped", () => {
   assert.match(worker, /Complete the whole assigned slice/);
   assert.match(worker, /verification_attempts/);
 
-  assert.equal(readFileSync("plugins/goalbuddy/skills/goalbuddy/agents/goal_scout.toml", "utf8"), scout);
-  assert.equal(readFileSync("plugins/goalbuddy/skills/goalbuddy/agents/goal_judge.toml", "utf8"), judge);
-  assert.equal(readFileSync("plugins/goalbuddy/skills/goalbuddy/agents/goal_worker.toml", "utf8"), worker);
+  assert.equal(readFileSync("plugins/goalbuddy/skills/goal-prep/agents/goal_scout.toml", "utf8"), scout);
+  assert.equal(readFileSync("plugins/goalbuddy/skills/goal-prep/agents/goal_judge.toml", "utf8"), judge);
+  assert.equal(readFileSync("plugins/goalbuddy/skills/goal-prep/agents/goal_worker.toml", "utf8"), worker);
 });
 
 test("install bundles the core local board surface into the skill", () => {
@@ -225,7 +225,7 @@ test("install bundles the core local board surface into the skill", () => {
     const install = runGoalMaker(["install", "--codex-home", codexHome, "--json"], { env });
     assert.equal(install.status, 0, install.stderr || install.stdout);
 
-    const skillRoot = join(JSON.parse(install.stdout).cache_path, "skills", "goalbuddy");
+    const skillRoot = join(JSON.parse(install.stdout).cache_path, "skills", "goal-prep");
     assert.equal(existsSync(join(skillRoot, "surfaces", "local-goal-board", "scripts", "local-goal-board.mjs")), true);
   } finally {
     rmSync(root, { recursive: true, force: true });
@@ -839,7 +839,7 @@ test("plugin install adds marketplace, caches plugin, and enables config", () =>
     assert.equal(report.version, packageVersion);
     assert.match(report.cache_path, pathSuffixPattern("plugins", "cache", "goalbuddy", "goalbuddy", packageVersion));
     assert.match(report.config_path, /config\.toml$/);
-    assert.equal(existsSync(join(report.cache_path, "skills", "goalbuddy", "surfaces", "local-goal-board", "scripts", "local-goal-board.mjs")), true);
+    assert.equal(existsSync(join(report.cache_path, "skills", "goal-prep", "surfaces", "local-goal-board", "scripts", "local-goal-board.mjs")), true);
 
     const config = readFileSync(join(codexHome, "config.toml"), "utf8");
     assert.match(config, /\[plugins\."goalbuddy@goalbuddy"\]/);
@@ -1104,7 +1104,7 @@ test("default command installs Codex and Claude Code when both homes are provide
     assert.equal(report.codex.installed, true);
     assert.equal(report.claude.skill.status, "installed");
     assert.equal(existsSync(join(codexHome, "config.toml")), true);
-    assert.equal(existsSync(join(claudeHome, "skills", "goalbuddy", "SKILL.md")), true);
+    assert.equal(existsSync(join(claudeHome, "skills", "goal-prep", "SKILL.md")), true);
     assert.equal(existsSync(join(claudeHome, "agents", "goal-worker.md")), true);
     assert.equal(existsSync(join(claudeHome, "commands", "goal-prep.md")), false);
   } finally {
@@ -1298,4 +1298,25 @@ test("judge receipt contract includes worker_package in every surface", () => {
   const mdSchema = receiptContractSchema("plugins/goalbuddy/agents/goal-judge.md");
   assert.deepEqual(Object.keys(tomlSchema.worker_package), ["objective", "allowed_files", "verify", "stop_if"]);
   assert.deepEqual(mdSchema.worker_package, tomlSchema.worker_package);
+});
+
+test("installs the Claude skill as goal-prep and migrates the legacy directory", () => {
+  const root = mkdtempSync(join(tmpdir(), "goalbuddy-skill-rename-"));
+  try {
+    const claudeHome = join(root, "claude");
+    mkdirSync(join(claudeHome, "skills", "goalbuddy"), { recursive: true });
+    writeFileSync(join(claudeHome, "skills", "goalbuddy", "SKILL.md"), "legacy\n");
+    const result = runGoalMaker(["install", "--target", "claude", "--claude-home", claudeHome, "--json"]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(existsSync(join(claudeHome, "skills", "goal-prep", "SKILL.md")), true);
+    assert.equal(existsSync(join(claudeHome, "skills", "goalbuddy")), false);
+
+    const doctor = runGoalMaker(["doctor", "--target", "claude", "--claude-home", claudeHome]);
+    assert.equal(doctor.status, 0, doctor.stderr || doctor.stdout);
+    const report = JSON.parse(doctor.stdout);
+    assert.equal(report.legacy_skill_present, false);
+    assert.match(report.skill_path, pathSuffixPattern("skills", "goal-prep", "SKILL.md"));
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });

@@ -303,6 +303,10 @@ function installTargetMode() {
 }
 
 function claudeSkillRoot() {
+  return join(claudeHome(), "skills", canonicalSkillName);
+}
+
+function legacyClaudeSkillRoot() {
   return join(claudeHome(), "skills", canonicalSkillDirectory);
 }
 
@@ -321,13 +325,20 @@ function installClaudeSkill({ quiet = false } = {}) {
     process.exit(1);
   }
 
-  const previousMetadata = readInstallMetadata(target);
+  const legacyTarget = legacyClaudeSkillRoot();
+  const previousMetadata = readInstallMetadata(target) || readInstallMetadata(legacyTarget);
   const previousFingerprint = existsSync(target) ? directoryFingerprint(target, { exclude: installFingerprintExcludes() }) : "";
 
   mkdirSync(dirname(target), { recursive: true });
   rmSync(target, { recursive: true, force: true });
   cpSync(skillSource, target, { recursive: true });
   writeInstallMetadata(target, previousMetadata);
+
+  const legacyRemoved = existsSync(legacyTarget);
+  if (legacyRemoved) {
+    rmSync(legacyTarget, { recursive: true, force: true });
+    if (!quiet) console.log(`removed legacy ${legacyTarget} (skill now installs as ${canonicalSkillName})`);
+  }
 
   const currentFingerprint = directoryFingerprint(target, { exclude: installFingerprintExcludes() });
   const status = previousFingerprint
@@ -340,6 +351,7 @@ function installClaudeSkill({ quiet = false } = {}) {
     path: target,
     previous_version: previousMetadata?.package_version || "",
     current_version: packageInfo.version,
+    removed_legacy_skill_path: legacyRemoved ? legacyTarget : "",
   };
 }
 
@@ -460,6 +472,8 @@ function doctorClaude() {
   });
   const legacyCommandPath = legacyClaudeCommandPath();
   const legacyCommandPresent = existsSync(legacyCommandPath);
+  const legacySkillPath = legacyClaudeSkillRoot();
+  const legacySkillPresent = existsSync(legacySkillPath);
 
   console.log(JSON.stringify({
     target: "claude",
@@ -471,9 +485,11 @@ function doctorClaude() {
     stale_agents: staleAgents,
     legacy_command_present: legacyCommandPresent,
     legacy_command_path: legacyCommandPath,
+    legacy_skill_present: legacySkillPresent,
+    legacy_skill_path: legacySkillPath,
   }, null, 2));
 
-  const installOk = installed && missingAgents.length === 0 && staleAgents.length === 0 && !legacyCommandPresent;
+  const installOk = installed && missingAgents.length === 0 && staleAgents.length === 0 && !legacyCommandPresent && !legacySkillPresent;
   process.exit(installOk ? 0 : 1);
 }
 
@@ -1199,7 +1215,9 @@ function installedCodexPlugin() {
     .reverse();
   for (const version of versions) {
     const cachePath = join(root, version);
-    const skillPath = join(cachePath, "skills", canonicalSkillDirectory);
+    const skillPath = [canonicalSkillName, canonicalSkillDirectory]
+      .map((name) => join(cachePath, "skills", name))
+      .find((path) => existsSync(join(path, "SKILL.md"))) || join(cachePath, "skills", canonicalSkillName);
     const manifestPath = join(cachePath, ".codex-plugin", "plugin.json");
     if (existsSync(join(skillPath, "SKILL.md"))) {
       return {

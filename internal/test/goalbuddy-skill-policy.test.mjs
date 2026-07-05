@@ -6,7 +6,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 const canonicalSkill = readFileSync("goalbuddy/SKILL.md", "utf8");
-const pluginSkill = readFileSync("plugins/goalbuddy/skills/goalbuddy/SKILL.md", "utf8");
+const pluginSkill = readFileSync("plugins/goalbuddy/skills/goal-prep/SKILL.md", "utf8");
 
 function fakeCodexBin(root) {
   const bin = join(root, "bin");
@@ -69,11 +69,11 @@ test("Goal Prep invocation boundary keeps $goal-prep prepare-only", () => {
 
 test("slice policy is simple and mirrored across templates and agent payloads", () => {
   const canonicalState = readFileSync("goalbuddy/templates/state.yaml", "utf8");
-  const pluginState = readFileSync("plugins/goalbuddy/skills/goalbuddy/templates/state.yaml", "utf8");
+  const pluginState = readFileSync("plugins/goalbuddy/skills/goal-prep/templates/state.yaml", "utf8");
   const canonicalWorker = readFileSync("goalbuddy/agents/goal_worker.toml", "utf8");
-  const pluginWorker = readFileSync("plugins/goalbuddy/skills/goalbuddy/agents/goal_worker.toml", "utf8");
+  const pluginWorker = readFileSync("plugins/goalbuddy/skills/goal-prep/agents/goal_worker.toml", "utf8");
   const canonicalJudge = readFileSync("goalbuddy/agents/goal_judge.toml", "utf8");
-  const pluginJudge = readFileSync("plugins/goalbuddy/skills/goalbuddy/agents/goal_judge.toml", "utf8");
+  const pluginJudge = readFileSync("plugins/goalbuddy/skills/goal-prep/agents/goal_judge.toml", "utf8");
 
   assert.equal(pluginState, canonicalState);
   assert.equal(pluginWorker, canonicalWorker);
@@ -106,7 +106,7 @@ test("Codex install keeps Goal Prep in the plugin and removes compatibility skil
     });
     assert.equal(install.status, 0, install.stderr);
     const report = JSON.parse(install.stdout);
-    const installedPluginSkill = readFileSync(join(report.cache_path, "skills", "goalbuddy", "SKILL.md"), "utf8");
+    const installedPluginSkill = readFileSync(join(report.cache_path, "skills", "goal-prep", "SKILL.md"), "utf8");
     assert.equal(existsSync(join(codexHome, "skills", "goal-maker", "SKILL.md")), false);
     assert.equal(existsSync(join(codexHome, "skills", "goalbuddy", "SKILL.md")), false);
     assert.match(installedPluginSkill, /During a `\$goal-prep` turn, do not perform the user's requested work/);

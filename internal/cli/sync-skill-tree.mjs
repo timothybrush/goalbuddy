@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-// Keeps plugins/goalbuddy/skills/goalbuddy a byte-exact mirror of goalbuddy/.
+// Keeps plugins/goalbuddy/skills/goal-prep a byte-exact mirror of goalbuddy/.
 import { copyFileSync, mkdirSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const canonicalRoot = join(repoRoot, "goalbuddy");
-const mirrorRoot = join(repoRoot, "plugins", "goalbuddy", "skills", "goalbuddy");
+const mirrorRoot = join(repoRoot, "plugins", "goalbuddy", "skills", "goal-prep");
 const ignoredNames = new Set([".DS_Store"]);
 const write = process.argv.includes("--write");
 

@@ -14,7 +14,7 @@ npm run check
 
 ## Skill Tree Sync
 
-`goalbuddy/` is the canonical skill tree. `plugins/goalbuddy/skills/goalbuddy/` is a generated mirror — never edit it directly. After changing anything under `goalbuddy/`, run:
+`goalbuddy/` is the canonical skill tree. `plugins/goalbuddy/skills/goal-prep/` is a generated mirror — never edit it directly. After changing anything under `goalbuddy/`, run:
 
 ```bash
 npm run sync:plugin

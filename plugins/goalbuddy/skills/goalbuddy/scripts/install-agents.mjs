@@ -1,12 +1,16 @@
 #!/usr/bin/env node
 import { copyFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
+import { homedir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const sourceDir = resolve(__dirname, "../agents");
-const destDir = resolve(process.argv[2] || ".codex/agents");
-const force = process.argv.includes("--force");
+const scriptArgs = process.argv.slice(2);
+const force = scriptArgs.includes("--force");
+const destArg = scriptArgs.find((arg) => !arg.startsWith("-"));
+const defaultDest = join(process.env.CODEX_HOME || join(homedir(), ".codex"), "agents");
+const destDir = resolve(destArg || defaultDest);
 
 if (!existsSync(sourceDir)) {
   console.error(`agent definitions not found: ${sourceDir}`);

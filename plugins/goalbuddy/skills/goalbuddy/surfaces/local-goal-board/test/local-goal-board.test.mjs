@@ -329,6 +329,7 @@ test("writes a minimal GoalBuddy web app into the goal directory", () => {
   assert.match(css, /-webkit-line-clamp: 5/);
   assert.match(css, /\.subgoal-board/);
   assert.match(css, /\.board-error/);
+  assert.match(css, /\.board-warning/);
   assert.match(js, /new EventSource\("\.\/events"\)/);
   assert.match(js, /fetch\("\.\.\/api\/boards"/);
   assert.match(js, /fetch\("\.\.\/api\/settings"/);
@@ -342,6 +343,8 @@ test("writes a minimal GoalBuddy web app into the goal directory", () => {
   assert.match(js, /highlightMovingCards/);
   assert.match(js, /renderSubgoal/);
   assert.match(js, /renderBoardError/);
+  assert.match(js, /renderBoardWarning/);
+  assert.match(js, /parseWarning/);
   assert.match(js, /boardOptionLabel/);
   assert.match(js, /duration: changedColumn \? 980 : 520/);
   assert.equal(logo.subarray(1, 4).toString("ascii"), "PNG");
@@ -782,6 +785,61 @@ tasks:
     receipt: null
 `;
 }
+
+test("flags degraded parses with a warning instead of silently dropping data", () => {
+  const root = mkdtempSync(join(tmpdir(), "goalbuddy-degraded-parse-"));
+  try {
+    const goalDir = join(root, "degraded");
+    mkdirSync(join(goalDir, "notes"), { recursive: true });
+    writeFileSync(join(goalDir, "state.yaml"), `version: 2
+goal:
+  title: "Degraded goal"
+  slug: "degraded-goal"
+  status: active
+active_task: T001
+tasks:
+  - id: T001
+    type: scout
+    assignee: Scout
+    status: active
+    objective: |
+      Block scalars force the fallback parser.
+    receipt: null
+`);
+    const payload = createBoardPayload(goalDir);
+    assert.equal(payload.tasks[0].id, "T001");
+    assert.match(payload.parseWarning, /fallback/i);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("recovers odd-indentation boards through the fallback parser", () => {
+  const root = mkdtempSync(join(tmpdir(), "goalbuddy-odd-indent-"));
+  try {
+    const goalDir = join(root, "odd-indent");
+    mkdirSync(join(goalDir, "notes"), { recursive: true });
+    writeFileSync(join(goalDir, "state.yaml"), `version: 2
+goal:
+   title: "Odd indent goal"
+   slug: "odd-indent-goal"
+   status: active
+active_task: T001
+tasks:
+  - id: T001
+    type: scout
+    assignee: Scout
+    status: active
+    objective: "Three-space indentation is valid YAML."
+    receipt: null
+`);
+    const payload = createBoardPayload(goalDir);
+    assert.equal(payload.tasks[0].id, "T001");
+    assert.match(payload.parseWarning, /fallback/i);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
 
 test("rejects requests with a non-local Host header", async () => {
   const root = mkdtempSync(join(tmpdir(), "goalbuddy-local-board-host-check-"));

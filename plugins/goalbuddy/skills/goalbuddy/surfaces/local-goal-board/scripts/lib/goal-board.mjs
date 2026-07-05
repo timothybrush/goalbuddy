@@ -35,6 +35,7 @@ export function createBoardPayload(goalDir, options = {}) {
   }
 
   const document = parseGoalStateText(readFileSync(statePath, "utf8"));
+  const parseWarning = document.__parseWarning || "";
   const board = normalizeGoalBoard(document, root);
   const noteIndex = loadNotes(root);
   const tasks = board.tasks
@@ -45,6 +46,7 @@ export function createBoardPayload(goalDir, options = {}) {
 
   return {
     generatedAt: new Date().toISOString(),
+    ...(parseWarning ? { parseWarning } : {}),
     source: {
       goalDir: root,
       statePath,
@@ -345,14 +347,16 @@ export function parseGoalStateText(text) {
     return value;
   } catch (error) {
     if (error instanceof GoalBoardError && canRecoverBoardSubset(error)) {
-      return parseGoalBoardSubset(text);
+      const document = parseGoalBoardSubset(text);
+      document.__parseWarning = `Strict parse failed (${error.message}) Showing a best-effort fallback view; fields the fallback parser cannot read are omitted. Fix state.yaml formatting to see the full board.`;
+      return document;
     }
     throw error;
   }
 }
 
 function canRecoverBoardSubset(error) {
-  return /Could not parse line|Expected key\/value pair|Expected mapping|Block scalar YAML/.test(error.message);
+  return /Could not parse line|Expected key\/value pair|Expected mapping|Block scalar YAML|Unsupported odd indentation/.test(error.message);
 }
 
 function parseGoalBoardSubset(text) {
@@ -1544,6 +1548,21 @@ h1 {
   color: var(--text);
 }
 
+.board-warning {
+  grid-column: 1 / -1;
+  padding: 12px 16px;
+  border: 1px solid var(--amber-border, #d9b64a);
+  border-radius: 8px;
+  background: var(--amber-bg, #fdf6e0);
+  color: var(--text);
+  font-size: 13px;
+}
+
+:root[data-theme="dark"] .board-warning {
+  border-color: #8a6d1f;
+  background: #33290f;
+}
+
 .board-error h2 {
   margin: 0 0 8px;
   font-size: 16px;
@@ -2060,9 +2079,20 @@ function renderBoard(board) {
 
   const delay = movingTaskIds.size ? 260 : 0;
   window.setTimeout(() => {
-    boardEl.replaceChildren(...board.columns.map(renderColumn));
+    const children = board.columns.map(renderColumn);
+    if (board.parseWarning) children.unshift(renderBoardWarning(board.parseWarning));
+    boardEl.replaceChildren(...children);
     animateCardMoves(previousPositions, movingTaskIds);
   }, delay);
+}
+
+function renderBoardWarning(message) {
+  const node = el("section", "board-warning");
+  node.append(
+    el("strong", "", "Degraded board view. "),
+    el("span", "", message),
+  );
+  return node;
 }
 
 function renderBoardError(message) {

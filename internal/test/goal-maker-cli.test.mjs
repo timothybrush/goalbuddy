@@ -1338,3 +1338,31 @@ test("installs the /goal command for Claude Code", () => {
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test("rejects an invalid --target value", () => {
+  const result = runGoalMaker(["doctor", "--target", "bogus"]);
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /Invalid --target: bogus/);
+});
+
+test("emits JSON for early argument errors when --json is set", () => {
+  const result = runGoalMaker(["doctor", "--codex-home", "--json"]);
+  assert.equal(result.status, 2);
+  const report = JSON.parse(result.stderr);
+  assert.equal(report.ok, false);
+  assert.match(report.error, /Missing value for --codex-home/);
+});
+
+test("repeated flags take the last value", () => {
+  const root = mkdtempSync(join(tmpdir(), "goalbuddy-last-wins-"));
+  try {
+    const first = join(root, "first");
+    const second = join(root, "second");
+    const result = runGoalMaker(["install", "--target", "claude", "--claude-home", first, "--claude-home", second, "--json"]);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(existsSync(join(second, "skills", "goal-prep", "SKILL.md")), true);
+    assert.equal(existsSync(join(first, "skills")), false);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

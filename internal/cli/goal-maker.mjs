@@ -150,9 +150,8 @@ async function main() {
       usage();
       break;
     default:
-      console.error(`Unknown command: ${command}`);
-      usage();
-      process.exit(2);
+      if (!hasFlag("--json")) usage();
+      argumentError(`Unknown command: ${command}`);
   }
 }
 
@@ -174,17 +173,32 @@ function maybePrintLegacyNotice() {
 }
 
 function optionValue(name) {
-  const exact = args.indexOf(name);
-  if (exact !== -1) {
-    const value = args[exact + 1];
-    if (value === undefined || value.startsWith("--")) {
-      console.error(`Missing value for ${name}`);
-      process.exit(2);
+  let value = null;
+  let found = false;
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+    if (arg === name) {
+      const next = args[index + 1];
+      if (next === undefined || next.startsWith("--")) {
+        argumentError(`Missing value for ${name}`);
+      }
+      value = next;
+      found = true;
+    } else if (arg.startsWith(`${name}=`)) {
+      value = arg.slice(name.length + 1);
+      found = true;
     }
-    return value;
   }
-  const prefixed = args.find((arg) => arg.startsWith(`${name}=`));
-  return prefixed ? prefixed.slice(name.length + 1) : null;
+  return found ? value : null;
+}
+
+function argumentError(message) {
+  if (args.includes("--json")) {
+    console.error(JSON.stringify({ ok: false, error: message }, null, 2));
+  } else {
+    console.error(message);
+  }
+  process.exit(2);
 }
 
 function hasFlag(name) {
@@ -282,17 +296,27 @@ function claudeHome() {
   return resolve(optionValue("--claude-home") || defaultClaudeHome);
 }
 
+function requestedTarget() {
+  const raw = optionValue("--target");
+  if (raw === null) return "";
+  const value = raw.toLowerCase();
+  if (value !== "codex" && value !== "claude") {
+    argumentError(`Invalid --target: ${raw}. Use codex or claude.`);
+  }
+  return value;
+}
+
 function targetMode() {
-  const value = (optionValue("--target") || "").toLowerCase();
-  if (value === "codex" || value === "claude") return value;
+  const value = requestedTarget();
+  if (value) return value;
   // Explicit --claude-home or CLAUDE_HOME implies Claude target unless --target codex is set.
   if (optionValue("--claude-home") || process.env.CLAUDE_HOME) return "claude";
   return "codex";
 }
 
 function installTargetMode() {
-  const value = (optionValue("--target") || "").toLowerCase();
-  if (value === "codex" || value === "claude") return value;
+  const value = requestedTarget();
+  if (value) return value;
 
   const hasCodexHomeOption = Boolean(optionValue("--codex-home"));
   const hasClaudeHomeOption = Boolean(optionValue("--claude-home"));

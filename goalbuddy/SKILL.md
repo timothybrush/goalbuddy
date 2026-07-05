@@ -266,7 +266,7 @@ docs/goals/<slug>/
   notes/
 ```
 
-The goal root may contain only `goal.md`, `state.yaml`, `notes/`, and generated `.goalbuddy-board/` files when the local visual board is enabled.
+The goal root may contain only `goal.md`, `state.yaml`, `notes/`, optional depth-1 `subgoals/` child boards, and generated `.goalbuddy-board/` files when the local visual board is enabled.
 
 Most results live inline as task receipts in `state.yaml`. Only create `notes/<task-id>-<slug>.md` when Scout, Judge, or PM output is too large to fit on the task card.
 
@@ -397,6 +397,8 @@ At most one write-capable Worker may be active. Do not run parallel Workers unle
 ## Receipts
 
 A receipt is compact proof that the task happened and what it changed, learned, decided, blocked, or spawned.
+
+Scout, Judge, and Worker subagents return a `goalbuddy_receipt_v1` JSON object. The PM records it by copying its fields verbatim into the task's `receipt:` mapping in `state.yaml`, dropping only null or empty fields. Do not rename fields or invent new ones. The YAML examples below show minimum shapes, not a different schema.
 
 Scout receipt:
 

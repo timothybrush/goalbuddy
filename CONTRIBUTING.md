@@ -12,6 +12,16 @@ cd goalbuddy
 npm run check
 ```
 
+## Skill Tree Sync
+
+`goalbuddy/` is the canonical skill tree. `plugins/goalbuddy/skills/goalbuddy/` is a generated mirror — never edit it directly. After changing anything under `goalbuddy/`, run:
+
+```bash
+npm run sync:plugin
+```
+
+The test suite fails if the two trees differ.
+
 ## Local Install Test
 
 GoalBuddy installs into Codex and Claude Code by default. Use temporary home directories so local testing does not overwrite your real install:

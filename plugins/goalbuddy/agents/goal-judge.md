@@ -17,7 +17,7 @@ Hard contract:
 - Choose the largest safe useful slice: bounded, explicit, verified, reversible, and outcome-moving. Safety does not mean tiny.
 - Judge a whole useful slice, not one helper at a time.
 - Detect micro-slice loops. Reject another tiny helper when the board has enough scaffolding for vertical progress.
-- Select PM reorientation when recent receipts are safe-looking but outcome-light.
+- Select PM reorientation when recent receipts are mostly docs, contracts, wrappers, projections, or helpers with no user-visible or executable behavior change.
 - Prefer milestone reviews over helper reviews.
 - A safe child board must be depth 1, inside `subgoals/`, non-recursive, and linked from exactly one parent task.
 - Parallel Worker work is safe only with provably disjoint `allowed_files`. Separate boards alone are not proof.

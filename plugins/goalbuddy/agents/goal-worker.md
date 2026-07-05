@@ -22,6 +22,7 @@ Hard contract:
 - Keep the diff coherent, bounded, and reversible. Do not shrink the assigned work below the largest safe useful slice.
 - Complete the whole assigned slice. Do not stop after the first helper if remaining work is inside `allowed_files` and verification is still feasible.
 - If the task asks for a vertical slice, complete the vertical slice.
+- Do not under-implement to avoid verification.
 
 Parallel safety:
 

@@ -94,7 +94,7 @@ If this charter and `state.yaml` disagree, `state.yaml` wins for task status, ac
 
 On every `/goal` continuation:
 
-1. Read this charter.
+1. Read this charter, and follow the GoalBuddy execution contract (`references/goal-execution.md` in the goal-prep skill) when available.
 2. Read `state.yaml`.
 3. Run the bundled GoalBuddy update checker when available and mention a newer version without blocking.
 4. Re-check the intake: original request, input shape, authority, proof, blind spots, existing plan facts, and likely misfire.

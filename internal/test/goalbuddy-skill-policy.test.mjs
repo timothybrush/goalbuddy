@@ -7,6 +7,8 @@ import assert from "node:assert/strict";
 
 const canonicalSkill = readFileSync("goalbuddy/SKILL.md", "utf8");
 const pluginSkill = readFileSync("plugins/goalbuddy/skills/goal-prep/SKILL.md", "utf8");
+const canonicalExecution = readFileSync("goalbuddy/references/goal-execution.md", "utf8");
+const pluginExecution = readFileSync("plugins/goalbuddy/skills/goal-prep/references/goal-execution.md", "utf8");
 
 function fakeCodexBin(root) {
   const bin = join(root, "bin");
@@ -42,15 +44,21 @@ test("Goal Prep invocation boundary keeps $goal-prep prepare-only", () => {
     assert.match(text, /do not assume the existing process is stale and do not stop it/);
     assert.match(text, /First check `http:\/\/127\.0\.0\.1:41737\/api\/boards`/);
     assert.match(text, /shared multi-board hub/);
-    assert.match(text, /node <skill-path>\/scripts\/render-task-prompt\.mjs docs\/goals\/<slug>/);
-    assert.match(text, /node <skill-path>\/scripts\/parallel-plan\.mjs docs\/goals\/<slug>/);
     assert.match(text, /update through the channel that installed GoalBuddy/);
     assert.match(text, /run the GoalBuddy CLI through the user's install channel/);
-    assert.doesNotMatch(text, /npx goalbuddy board/);
-    assert.doesNotMatch(text, /goalbuddy prompt docs\/goals/);
-    assert.doesNotMatch(text, /goalbuddy parallel-plan docs\/goals/);
     assert.match(text, /Codex in-app Browser/);
     assert.match(text, /do not install a GoalBuddy catalog item/);
+    assert.match(text, /A good task is the largest safe useful slice/);
+    assert.match(text, /Safe does not mean small/);
+    assert.match(text, /references\/goal-execution\.md/);
+  }
+});
+
+test("the execution contract carries the /goal runtime rules", () => {
+  for (const text of [canonicalExecution, pluginExecution]) {
+    assert.match(text, /governs `\/goal` runs/);
+    assert.match(text, /node <skill-path>\/scripts\/render-task-prompt\.mjs docs\/goals\/<slug>/);
+    assert.match(text, /node <skill-path>\/scripts\/parallel-plan\.mjs docs\/goals\/<slug>/);
     assert.match(text, /Operator Escalation/);
     assert.match(text, /ask the operator one concise question before creating the external artifact/);
     assert.match(text, /This section applies after the user starts `\/goal Follow docs\/goals\/<slug>\/goal\.md\.`/);
@@ -62,9 +70,19 @@ test("Goal Prep invocation boundary keeps $goal-prep prepare-only", () => {
     assert.match(text, /node <skill-path>\/scripts\/check-goal-state\.mjs docs\/goals\/<slug>/);
     assert.match(text, /Repair only GoalBuddy control files/);
     assert.match(text, /Never edit product implementation files during board-health work/);
-    assert.match(text, /A good task is the largest safe useful slice/);
-    assert.match(text, /Safe does not mean small/);
+    assert.match(text, /goalbuddy_receipt_v1/);
+    assert.match(text, /full_outcome_complete: true/);
   }
+});
+
+test("mode boundaries stay clean across both documents", () => {
+  for (const text of [canonicalSkill, pluginSkill, canonicalExecution, pluginExecution]) {
+    assert.doesNotMatch(text, /npx goalbuddy board/);
+    assert.doesNotMatch(text, /goalbuddy prompt docs\/goals/);
+    assert.doesNotMatch(text, /goalbuddy parallel-plan docs\/goals/);
+  }
+  assert.doesNotMatch(canonicalSkill, /## Continuation Rule|## Computed Gate|## Completion\n/);
+  assert.doesNotMatch(canonicalExecution, /## Guided Intake Surface|## Seed Boards|What `\$goal-prep` Does/);
 });
 
 test("slice policy is simple and mirrored across templates and agent payloads", () => {

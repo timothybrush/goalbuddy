@@ -5,6 +5,7 @@ import {
   mkdirSync,
   readdirSync,
   readFileSync,
+  renameSync,
   rmSync,
   writeFileSync,
 } from "node:fs";
@@ -174,7 +175,14 @@ function maybePrintLegacyNotice() {
 
 function optionValue(name) {
   const exact = args.indexOf(name);
-  if (exact !== -1) return args[exact + 1];
+  if (exact !== -1) {
+    const value = args[exact + 1];
+    if (value === undefined || value.startsWith("--")) {
+      console.error(`Missing value for ${name}`);
+      process.exit(2);
+    }
+    return value;
+  }
   const prefixed = args.find((arg) => arg.startsWith(`${name}=`));
   return prefixed ? prefixed.slice(name.length + 1) : null;
 }
@@ -886,7 +894,7 @@ function resetCodex() {
         updated = next;
       }
     }
-    if (updated !== existing) writeFileSync(configPath, updated);
+    if (updated !== existing) writeFileAtomic(configPath, updated);
   }
 
   const removedPluginCachePaths = [];
@@ -970,8 +978,14 @@ function enablePluginConfig() {
   const header = `[plugins."${pluginName}@${pluginName}"]`;
   const existing = existsSync(configPath) ? readFileSync(configPath, "utf8") : "";
   const updated = upsertTomlEnabled(existing, header);
-  writeFileSync(configPath, updated);
+  writeFileAtomic(configPath, updated);
   return configPath;
+}
+
+function writeFileAtomic(path, content) {
+  const tempPath = `${path}.goalbuddy-tmp-${process.pid}`;
+  writeFileSync(tempPath, content);
+  renameSync(tempPath, path);
 }
 
 function upsertTomlEnabled(text, header) {
@@ -1358,6 +1372,7 @@ function latestPublishedVersion() {
   const result = spawnSync("npm", ["view", packageInfo.name, "version"], {
     cwd: packageRoot,
     encoding: "utf8",
+    shell: process.platform === "win32",
     timeout: 5000,
     env: {
       ...process.env,
@@ -1392,7 +1407,10 @@ function compareVersions(left, right) {
     const diff = (leftParts[index] || 0) - (rightParts[index] || 0);
     if (diff !== 0) return diff;
   }
-  return left.localeCompare(right);
+  const leftPre = String(left).includes("-");
+  const rightPre = String(right).includes("-");
+  if (leftPre !== rightPre) return leftPre ? -1 : 1;
+  return 0;
 }
 
 function printJson(value) {

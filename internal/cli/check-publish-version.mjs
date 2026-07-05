@@ -15,7 +15,7 @@ if (!publishedVersions.length) {
 }
 
 const normalizedPublishedVersions = publishedVersions.map(normalizeVersion);
-const latestPublishedVersion = normalizedPublishedVersions.toSorted(compareVersions).at(-1);
+const latestPublishedVersion = [...normalizedPublishedVersions].sort(compareVersions).at(-1);
 
 if (normalizedPublishedVersions.includes(currentVersion)) {
   fail(`${pkg.name}@${currentVersion} has already been published. Bump package.json before publishing.`);
@@ -37,6 +37,7 @@ function readPublishedVersions(packageName) {
 
   const result = spawnSync("npm", ["view", packageName, "versions", "--json"], {
     encoding: "utf8",
+    shell: process.platform === "win32",
   });
 
   if (result.status === 0) return parseVersionList(result.stdout);

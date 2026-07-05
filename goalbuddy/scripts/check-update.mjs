@@ -61,6 +61,7 @@ function latestPublishedVersion() {
   const result = spawnSync("npm", ["view", packageName, "version"], {
     cwd: resolve(scriptDir, ".."),
     encoding: "utf8",
+    shell: process.platform === "win32",
     timeout: 5000,
     env: {
       ...process.env,

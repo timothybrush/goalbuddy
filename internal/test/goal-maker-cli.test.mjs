@@ -1286,3 +1286,9 @@ checks:
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test("errors when a path option is missing its value", () => {
+  const result = runGoalMaker(["doctor", "--codex-home", "--json"]);
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /Missing value for --codex-home/);
+});

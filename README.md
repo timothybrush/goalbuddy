@@ -104,6 +104,8 @@ No oracle, no serious goal.
 
 The local board is the default work surface. It is not an extension marketplace; it is the built-in view of the `state.yaml` truth.
 
+The receipt and task-card format is specified in [docs/spec/receipt-v1.md](docs/spec/receipt-v1.md) — harness-neutral, plain YAML, machine-validated.
+
 Scout maps the repo.
 
 Judge chooses the largest safe useful slice.

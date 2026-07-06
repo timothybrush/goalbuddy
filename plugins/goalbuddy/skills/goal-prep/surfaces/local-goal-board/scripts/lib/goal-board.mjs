@@ -422,8 +422,23 @@ function findTaskScalar(text, key) {
 }
 
 function findScalar(text, pattern) {
-  const match = String(text || "").match(pattern);
-  return match ? match[1] : "";
+  const source = String(text || "");
+  const match = source.match(pattern);
+  if (!match) return "";
+  if (!/^[|>][+-]?$/.test(match[1])) return match[1];
+  return blockScalarText(source, match.index, match[0]);
+}
+
+function blockScalarText(source, matchIndex, matchedLine) {
+  const keyIndent = matchedLine.match(/^ */)[0].length;
+  const following = source.slice(matchIndex + matchedLine.length).split("\n").slice(1);
+  const collected = [];
+  for (const line of following) {
+    if (!line.trim()) continue;
+    if (line.match(/^ */)[0].length <= keyIndent) break;
+    collected.push(line.trim());
+  }
+  return collected.join(" ");
 }
 
 function findTopLevelSection(text, key) {

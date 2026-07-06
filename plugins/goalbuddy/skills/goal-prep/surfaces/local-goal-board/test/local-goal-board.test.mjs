@@ -824,6 +824,8 @@ tasks:
     const payload = createBoardPayload(goalDir);
     assert.equal(payload.tasks[0].id, "T001");
     assert.match(payload.parseWarning, /fallback/i);
+    assert.match(payload.tasks[0].objective, /Block scalars force the fallback parser/);
+    assert.notEqual(payload.tasks[0].title, "|");
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

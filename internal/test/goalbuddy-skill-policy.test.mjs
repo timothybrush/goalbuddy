@@ -138,3 +138,16 @@ test("Codex install keeps Goal Prep in the plugin and removes compatibility skil
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test("receipt spec stays consistent with the shipped contracts", () => {
+  const spec = readFileSync("docs/spec/receipt-v1.md", "utf8");
+  assert.match(spec, /goalbuddy_receipt_v1/);
+  assert.match(spec, /worker_package/);
+  assert.match(spec, /lists \*\*only passing commands\*\*/);
+  assert.match(spec, /blocked_reason/);
+  assert.match(spec, /`T` followed by exactly three digits/);
+  const execution = readFileSync("goalbuddy/references/goal-execution.md", "utf8");
+  for (const field of ["worker_package", "blocked_reason", "changed_files", "full_outcome_complete"]) {
+    assert.match(execution, new RegExp(field), `${field} missing from execution contract`);
+  }
+});

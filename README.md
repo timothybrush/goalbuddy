@@ -48,6 +48,10 @@ In Claude Code, GoalBuddy installs a real `/goal` command that runs the executio
 
 ## Cross-Harness Goals
 
+<p align="center">
+  <img src="internal/assets/goalbuddy-v0.4.0-release.png" alt="GoalBuddy 0.4.0: Cross-Harness Goals — one board, any agent" width="100%">
+</p>
+
 Harnesses churn; repos persist. A GoalBuddy board lives in your repo as plain files, so the goal outlives whichever tool started it: begin a goal in Codex, resume it in Claude Code tomorrow — or the other way around — with the same command.
 
 ```bash

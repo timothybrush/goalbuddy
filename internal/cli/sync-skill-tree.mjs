@@ -8,6 +8,7 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const canonicalRoot = join(repoRoot, "goalbuddy");
 const mirrorRoot = join(repoRoot, "plugins", "goalbuddy", "skills", "goal-prep");
 const ignoredNames = new Set([".DS_Store"]);
+const ignoredDirs = new Set([".goalbuddy-board"]);
 const write = process.argv.includes("--write");
 
 const canonicalFiles = listFiles(canonicalRoot);
@@ -49,6 +50,7 @@ if (write) {
 function listFiles(root, dir = root, files = new Set()) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     if (ignoredNames.has(entry.name)) continue;
+    if (entry.isDirectory() && ignoredDirs.has(entry.name)) continue;
     const path = join(dir, entry.name);
     if (entry.isDirectory()) listFiles(root, path, files);
     else files.add(relative(root, path).split(sep).join("/"));

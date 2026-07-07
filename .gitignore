@@ -9,3 +9,5 @@ site/*.tsbuildinfo
 docs/*
 !docs/releases/
 !docs/releases/**
+!docs/spec/
+!docs/spec/**

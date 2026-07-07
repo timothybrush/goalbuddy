@@ -56,6 +56,14 @@ npx goalbuddy resume
 
 `resume` lists every live board in the repo with its status, active task, and the exact `/goal Follow docs/goals/<slug>/goal.md.` command to continue, which is identical in both harnesses. Receipts can record which harness performed each task, so the board's history survives the handoff intact.
 
+Boards can also mix vendors within a single run — an Opus judge, a Codex worker, and a Gemini scout on the same board:
+
+```bash
+npx goalbuddy dispatch docs/goals/<slug> --to codex
+```
+
+`dispatch` renders the active task's prompt, runs the target CLI headless (`codex`, `claude-code`, or `gemini`), extracts the returned receipt, and verifies write scope mechanically with git: worker changes must stay inside the task's `allowed_files`, and read-only roles must change nothing. The dispatcher never edits the board — the PM records the receipt, stamped with the harness that earned it.
+
 ## Codex Install Model
 
 For Codex, the canonical install is the native plugin plus bundled agents:

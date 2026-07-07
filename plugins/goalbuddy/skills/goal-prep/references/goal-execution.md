@@ -32,6 +32,22 @@ A board may arrive mid-run from a different harness: a goal started in Codex can
 
 Any receipt may include an optional `harness` field (for example `codex` or `claude-code`) naming the runtime that performed the task, so the board's history shows who did what across a handoff. When you know which harness you are, stamp it.
 
+### Mixed Fleets
+
+A single board may also mix harnesses within one run: the PM stays where it is and dispatches an individual task to a different vendor's agent — for example a Codex worker or a Gemini scout — using the bundled dispatcher:
+
+```bash
+node <skill-path>/scripts/dispatch-task.mjs docs/goals/<slug> --to codex
+```
+
+Rules for external dispatch:
+
+- Dispatch to an external harness only when the user asked for a specific harness or model, or the task card carries an optional `harness:` field naming one. Never dispatch externally by default — it spends the user's quota on another vendor.
+- The dispatcher renders the task prompt, runs the target CLI headless with role-appropriate sandboxing, extracts the returned `goalbuddy_receipt_v1`, and mechanically verifies write scope with git: worker changes must match `allowed_files`, and read-only roles must change nothing.
+- The dispatcher never edits `state.yaml`. The PM records the reported receipt verbatim — including its `harness` stamp — exactly as with any subagent receipt.
+- Do not mark a dispatched task `done` unless the dispatch report's scope check is clean and the receipt's verify commands pass. A scope violation means inspect the working tree, decide what to keep, and record a blocked receipt with the facts.
+- If the target CLI is missing, unauthenticated, or times out, fall back to the normal path: PM fallback or the required GoalBuddy agent, per the dispatch rules above.
+
 ## `/goal` Default Bias: Users Want Work Done
 
 This section applies after the user starts `/goal Follow docs/goals/<slug>/goal.md.` It does not apply to the initial `$goal-prep` board-preparation turn.

@@ -81,6 +81,10 @@ test("the execution contract carries the /goal runtime rules", () => {
     assert.match(text, /Boards Move Between Harnesses/);
     assert.match(text, /never reconstruct progress from chat history/);
     assert.match(text, /optional `harness` field/);
+    assert.match(text, /### Mixed Fleets/);
+    assert.match(text, /node <skill-path>\/scripts\/dispatch-task\.mjs docs\/goals\/<slug> --to codex/);
+    assert.match(text, /Never dispatch externally by default/);
+    assert.match(text, /The dispatcher never edits `state\.yaml`/);
   }
 });
 

@@ -6,7 +6,7 @@ import { relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { formatPrompt, loadBoard, renderTaskPrompt, resolveBoardPath, selectTask } from "./render-task-prompt.mjs";
 
-const HARNESSES = new Set(["codex", "claude-code", "gemini"]);
+const HARNESSES = new Set(["codex", "claude-code"]);
 const READ_ONLY_ROLES = new Set(["scout", "judge"]);
 
 if (isDirectRun()) {
@@ -48,7 +48,7 @@ export function parseDispatchArgs(args) {
     else throw new Error(`Unexpected argument: ${arg}`);
   }
   if (!options.goalRoot) {
-    throw new Error("Usage: node dispatch-task.mjs <goal-root> --to codex|claude-code|gemini [--task T###] [--model <name>] [--timeout <seconds>] [--json]");
+    throw new Error("Usage: node dispatch-task.mjs <goal-root> --to codex|claude-code [--task T###] [--model <name>] [--timeout <seconds>] [--json]");
   }
   return options;
 }
@@ -59,7 +59,7 @@ export function dispatchTask(options) {
   const task = selectTask(board, options.taskId);
   const to = options.to || cleanScalar(task.harness) || "";
   if (!HARNESSES.has(to)) {
-    return failure(`Unknown or missing dispatch target "${to}". Use --to codex, claude-code, or gemini (or set harness: on the task card).`, { task_id: task.id });
+    return failure(`Unknown or missing dispatch target "${to}". Use --to codex or --to claude-code (or set harness: on the task card).`, { task_id: task.id });
   }
 
   const rendered = renderTaskPrompt({ goalRoot: options.goalRoot, taskId: options.taskId, json: false });
@@ -129,15 +129,10 @@ export function harnessCommand(to, prompt, { model = "", sandbox = "workspace-wr
     args.push(prompt);
     return { file: "codex", args };
   }
-  if (to === "claude-code") {
-    const args = ["-p", prompt];
-    if (model) args.push("--model", model);
-    if (!READ_ONLY_ROLES.has(role)) args.push("--permission-mode", "acceptEdits");
-    return { file: "claude", args };
-  }
   const args = ["-p", prompt];
-  if (model) args.unshift("-m", model);
-  return { file: "gemini", args };
+  if (model) args.push("--model", model);
+  if (!READ_ONLY_ROLES.has(role)) args.push("--permission-mode", "acceptEdits");
+  return { file: "claude", args };
 }
 
 export function extractReceipt(output) {

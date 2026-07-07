@@ -34,7 +34,7 @@ Any receipt may include an optional `harness` field (for example `codex` or `cla
 
 ### Mixed Fleets
 
-A single board may also mix harnesses within one run: the PM stays where it is and dispatches an individual task to a different vendor's agent — for example a Codex worker or a Gemini scout — using the bundled dispatcher:
+A single board may also mix harnesses within one run: the PM stays where it is and dispatches an individual task to a different vendor's agent — for example a Codex worker on a Claude Code board, or a Claude judge on a Codex board — using the bundled dispatcher:
 
 ```bash
 node <skill-path>/scripts/dispatch-task.mjs docs/goals/<slug> --to codex

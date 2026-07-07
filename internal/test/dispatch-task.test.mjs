@@ -1,4 +1,4 @@
-import { chmodSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { delimiter, join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -133,14 +133,51 @@ test("dispatch extracts receipts wrapped in markdown fences", () => {
 test("dispatch reports a missing harness CLI cleanly", () => {
   const root = makeProject();
   try {
+    const bin = join(root, "sparse-bin");
+    mkdirSync(bin, { recursive: true });
+    const gitPath = spawnSync("command", ["-v", "git"], { encoding: "utf8", shell: true }).stdout.trim();
+    symlinkSync(gitPath, join(bin, "git"));
+    const result = spawnSync(process.execPath, [dispatcher, "docs/goals/one", "--to", "codex", "--json"], {
+      cwd: root,
+      encoding: "utf8",
+      env: { ...process.env, PATH: bin },
+    });
+    assert.equal(result.status, 1, result.stdout);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.ok, false);
+    assert.match(report.error, /codex.*not found|not found.*codex/i);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("dispatch rejects unsupported harness targets", () => {
+  const root = makeProject();
+  try {
     const result = spawnSync(process.execPath, [dispatcher, "docs/goals/one", "--to", "gemini", "--json"], {
       cwd: root,
       encoding: "utf8",
     });
     assert.equal(result.status, 1, result.stdout);
     const report = JSON.parse(result.stdout);
-    assert.equal(report.ok, false);
-    assert.match(report.error, /gemini.*not found|not found.*gemini/i);
+    assert.match(report.error, /Unknown or missing dispatch target/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("dispatch times out hung harness CLIs", () => {
+  const root = makeProject();
+  try {
+    const bin = fakeHarnessBin(root, "codex", "sleep 30");
+    const result = spawnSync(process.execPath, [dispatcher, "docs/goals/one", "--to", "codex", "--timeout", "1", "--json"], {
+      cwd: root,
+      encoding: "utf8",
+      env: { ...process.env, PATH: `${bin}${delimiter}${process.env.PATH}` },
+    });
+    assert.equal(result.status, 1, result.stdout);
+    const report = JSON.parse(result.stdout);
+    assert.match(report.error, /timed out after 1s/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

@@ -80,6 +80,7 @@ export function dispatchTask(options) {
   const after = gitChangedFiles();
   const scope = scopeCheck({ before, after, role, allowedFiles: rendered.payload.task.allowed_files });
   const receipt = extractReceipt(`${run.stdout}\n${run.stderr}`);
+  if (receipt && !receipt.harness) receipt.harness = to;
 
   const report = {
     ok: Boolean(receipt) && scope.status !== "violations" && run.status === 0,
@@ -145,37 +146,59 @@ export function extractReceipt(output) {
   let searchFrom = 0;
   while (true) {
     const keyIndex = text.indexOf(key, searchFrom);
-    if (keyIndex === -1) return null;
+    if (keyIndex === -1) break;
     const start = text.lastIndexOf("{", keyIndex);
-    if (start === -1) {
-      searchFrom = keyIndex + key.length;
-      continue;
-    }
-    let depth = 0;
-    let inString = false;
-    for (let index = start; index < text.length; index += 1) {
-      const char = text[index];
-      if (inString) {
-        if (char === "\\") index += 1;
-        else if (char === '"') inString = false;
-        continue;
-      }
-      if (char === '"') inString = true;
-      else if (char === "{") depth += 1;
-      else if (char === "}") {
-        depth -= 1;
-        if (depth === 0) {
-          try {
-            const parsed = JSON.parse(text.slice(start, index + 1));
-            return parsed.goalbuddy_receipt_v1 || parsed;
-          } catch {
-            break;
-          }
-        }
-      }
+    if (start !== -1) {
+      const candidate = parseBalancedObject(text, start);
+      const receipt = candidate ? candidate.goalbuddy_receipt_v1 ?? candidate : null;
+      if (isReceiptShaped(receipt)) return receipt;
     }
     searchFrom = keyIndex + key.length;
   }
+
+  // Fallback: models often return the receipt bare, without the envelope.
+  // Scan candidate objects from the end of the output (receipts come last).
+  const starts = [];
+  for (let index = 0; index < text.length; index += 1) {
+    if (text[index] === "{" && (index === 0 || /[\s`:>]/.test(text[index - 1]))) starts.push(index);
+  }
+  for (let attempt = starts.length - 1, tried = 0; attempt >= 0 && tried < 50; attempt -= 1, tried += 1) {
+    const candidate = parseBalancedObject(text, starts[attempt]);
+    if (isReceiptShaped(candidate)) return candidate;
+  }
+  return null;
+}
+
+function parseBalancedObject(text, start) {
+  let depth = 0;
+  let inString = false;
+  for (let index = start; index < text.length; index += 1) {
+    const char = text[index];
+    if (inString) {
+      if (char === "\\") index += 1;
+      else if (char === '"') inString = false;
+      continue;
+    }
+    if (char === '"') inString = true;
+    else if (char === "{") depth += 1;
+    else if (char === "}") {
+      depth -= 1;
+      if (depth === 0) {
+        try {
+          return JSON.parse(text.slice(start, index + 1));
+        } catch {
+          return null;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function isReceiptShaped(candidate) {
+  if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return false;
+  if (typeof candidate.result !== "string") return false;
+  return ["task_id", "decision", "summary", "changed_files", "evidence"].some((field) => field in candidate);
 }
 
 function gitChangedFiles() {

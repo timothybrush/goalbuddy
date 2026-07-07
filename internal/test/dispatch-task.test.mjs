@@ -164,3 +164,36 @@ test("goalbuddy dispatch CLI wrapper forwards to the bundled script", () => {
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test("dispatch rejects receipt-shaped fragments that are not real receipts", () => {
+  const root = makeProject();
+  try {
+    const bin = fakeHarnessBin(root, "codex", `echo '{"goalbuddy_receipt_v1": true}'\necho 'later, the real one:'\necho '${RECEIPT}'`);
+    const result = runDispatch(root, bin);
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.receipt.result, "done");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("dispatch extracts bare receipts returned without the envelope", () => {
+  const root = makeProject();
+  try {
+    const bare = JSON.stringify({
+      result: "done",
+      task_id: "T001",
+      decision: "approved",
+      summary: "bare receipt",
+    });
+    const bin = fakeHarnessBin(root, "codex", `echo "export const widget = 2;" > src/widget.mjs\nprintf 'Some prose first.\\n\`\`\`json\\n%s\\n\`\`\`\\n' '${bare}'`);
+    const result = runDispatch(root, bin);
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.receipt.summary, "bare receipt");
+    assert.equal(report.receipt.harness, "codex");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

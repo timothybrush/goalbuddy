@@ -158,6 +158,14 @@ receipt:
     - T005
 ```
 
+Recording a receipt by hand takes three separate precise edits (task status, receipt block, `active_task`). The bundled applier does the transition atomically and fail-closed — it validates the resulting board with the checker and reverts the file on any error:
+
+```bash
+node <skill-path>/scripts/apply-receipt.mjs docs/goals/<slug> --task T### --receipt receipt.json --activate T###
+```
+
+It accepts a bare receipt JSON, a `goalbuddy_receipt_v1` envelope, or a dispatch report, and stays PM-invoked: it is a tool the PM uses to edit the board it owns.
+
 Subagent idle signals and receipt messages can arrive out of order. Treat a bare idle notification as "receipt may still be in flight": check again briefly before nudging, and verify against the working tree (for example `git status`) rather than assuming the receipt is missing. A worker with uncommitted changes and no delivered receipt has not reached a valid stopping state.
 
 For follow-up slices tightly coupled to a just-finished task, reusing the same still-available subagent — which retains the relevant context — is often cheaper and more accurate than a fresh spawn. Prefer it when the follow-up amends that worker's own output.

@@ -152,6 +152,13 @@ async function main() {
       }
       dispatchCli();
       break;
+    case "receipt":
+      if (wantsHelp()) {
+        usage();
+        break;
+      }
+      receiptCli();
+      break;
     case "init":
       if (wantsHelp()) {
         usage();
@@ -293,6 +300,7 @@ Usage:
   ${canonicalCliName} init <slug> [--title "<Goal title>"] [--json]
   ${canonicalCliName} resume [docs/goals/slug] [--json]
   ${canonicalCliName} dispatch <docs/goals/slug> --to codex|claude-code [--task T###] [--model <name>] [--timeout <seconds>] [--json]
+  ${canonicalCliName} receipt <docs/goals/slug> --task T### --receipt <file> [--status done|blocked] [--activate T###|none] [--json]
   ${canonicalCliName} prompt <docs/goals/slug> [--task T###] [--board <path/to/state.yaml>] [--json]
   ${canonicalCliName} parallel-plan <docs/goals/slug> [--json]
 
@@ -1247,6 +1255,16 @@ function initGoal() {
   console.log(`Created GoalBuddy board: docs/goals/${slug}/`);
   console.log("Next: refine the charter and intake with $goal-prep (Codex) or /goal-prep (Claude Code),");
   console.log(`or start execution: ${runCommand}`);
+}
+
+function receiptCli() {
+  const script = join(skillSource, "scripts", "apply-receipt.mjs");
+  const result = spawnSync(process.execPath, [script, ...args.slice(1)], {
+    cwd: process.cwd(),
+    stdio: "inherit",
+    env: process.env,
+  });
+  process.exit(result.status ?? 1);
 }
 
 function dispatchCli() {

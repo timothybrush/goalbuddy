@@ -145,3 +145,22 @@ test("dispatch reports a missing harness CLI cleanly", () => {
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+test("goalbuddy dispatch CLI wrapper forwards to the bundled script", () => {
+  const root = makeProject();
+  try {
+    const bin = fakeHarnessBin(root, "codex", `echo "export const widget = 2;" > src/widget.mjs\necho '${RECEIPT}'`);
+    const cli = resolve("internal/cli/goal-maker.mjs");
+    const result = spawnSync(process.execPath, [cli, "dispatch", "docs/goals/one", "--to", "codex", "--json"], {
+      cwd: root,
+      encoding: "utf8",
+      env: { ...process.env, PATH: `${bin}${delimiter}${process.env.PATH}` },
+    });
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.ok, true);
+    assert.equal(report.scope_check.status, "clean");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

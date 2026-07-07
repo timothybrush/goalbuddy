@@ -145,6 +145,13 @@ async function main() {
       }
       await resume();
       break;
+    case "dispatch":
+      if (wantsHelp()) {
+        usage();
+        break;
+      }
+      dispatchCli();
+      break;
     case "prompt":
       await prompt();
       break;
@@ -277,6 +284,7 @@ Usage:
   ${canonicalCliName} check-update [--json]
   ${canonicalCliName} board <docs/goals/slug> [--host <host>] [--port <port>] [--once] [--json]
   ${canonicalCliName} resume [docs/goals/slug] [--json]
+  ${canonicalCliName} dispatch <docs/goals/slug> --to codex|claude-code|gemini [--task T###] [--model <name>] [--timeout <seconds>] [--json]
   ${canonicalCliName} prompt <docs/goals/slug> [--task T###] [--board <path/to/state.yaml>] [--json]
   ${canonicalCliName} parallel-plan <docs/goals/slug> [--json]
 
@@ -1199,6 +1207,16 @@ async function board() {
     if (result.stderr) process.stderr.write(result.stderr);
   }
   if (result.error) throw result.error;
+  process.exit(result.status ?? 1);
+}
+
+function dispatchCli() {
+  const script = join(skillSource, "scripts", "dispatch-task.mjs");
+  const result = spawnSync(process.execPath, [script, ...args.slice(1)], {
+    cwd: process.cwd(),
+    stdio: "inherit",
+    env: process.env,
+  });
   process.exit(result.status ?? 1);
 }
 

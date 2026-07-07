@@ -1366,3 +1366,103 @@ test("repeated flags take the last value", () => {
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+function writeResumeGoal(repoRoot, slug, { active = true } = {}) {
+  const goalDir = join(repoRoot, "docs", "goals", slug);
+  mkdirSync(join(goalDir, "notes"), { recursive: true });
+  writeFileSync(join(goalDir, "goal.md"), `# ${slug}\n`);
+  writeFileSync(join(goalDir, "state.yaml"), `version: 2
+goal:
+  title: "${slug} goal"
+  slug: "${slug}"
+  kind: specific
+  tranche: "test"
+  status: ${active ? "active" : "done"}
+active_task: ${active ? "T001" : "null"}
+tasks:
+  - id: T001
+    type: worker
+    assignee: Worker
+    status: ${active ? "active" : "done"}
+    objective: "Fix the widget in ${slug}."
+    allowed_files:
+      - src/widget.mjs
+    verify:
+      - npm test
+    stop_if:
+      - "Need files outside allowed_files."
+    receipt: ${active ? "null" : `
+      result: done
+      changed_files:
+        - src/widget.mjs
+      commands:
+        - cmd: npm test
+          status: pass
+      summary: "done"`}
+`);
+  return goalDir;
+}
+
+test("resume lists boards and prints the handoff command for active goals", () => {
+  const root = mkdtempSync(join(tmpdir(), "goalbuddy-resume-"));
+  try {
+    writeResumeGoal(root, "one", { active: true });
+    writeResumeGoal(root, "two", { active: false });
+
+    const result = runGoalMaker(["resume"], { cwd: root });
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    assert.match(result.stdout, /one goal/);
+    assert.match(result.stdout, /two goal/);
+    assert.match(result.stdout, /T001 \(worker\) Fix the widget in one\./);
+    assert.match(result.stdout, /Resume in any harness \(Codex or Claude Code\)/);
+    assert.match(result.stdout, /\/goal Follow docs\/goals\/one\/goal\.md\./);
+    assert.doesNotMatch(result.stdout, /\/goal Follow docs\/goals\/two\/goal\.md\./);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("resume --json returns structured boards", () => {
+  const root = mkdtempSync(join(tmpdir(), "goalbuddy-resume-json-"));
+  try {
+    writeResumeGoal(root, "one", { active: true });
+    const result = runGoalMaker(["resume", "--json"], { cwd: root });
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    const report = JSON.parse(result.stdout);
+    assert.equal(report.boards.length, 1);
+    assert.equal(report.boards[0].slug, "one");
+    assert.equal(report.boards[0].status, "active");
+    assert.equal(report.boards[0].active_task.id, "T001");
+    assert.equal(report.boards[0].run_command, "/goal Follow docs/goals/one/goal.md.");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("resume scoped to one goal dir and empty repos behave", () => {
+  const root = mkdtempSync(join(tmpdir(), "goalbuddy-resume-scoped-"));
+  try {
+    writeResumeGoal(root, "one", { active: true });
+    writeResumeGoal(root, "two", { active: false });
+
+    const scoped = runGoalMaker(["resume", "docs/goals/two", "--json"], { cwd: root });
+    assert.equal(scoped.status, 0, scoped.stderr || scoped.stdout);
+    const scopedReport = JSON.parse(scoped.stdout);
+    assert.equal(scopedReport.boards.length, 1);
+    assert.equal(scopedReport.boards[0].slug, "two");
+    assert.equal(scopedReport.boards[0].active_task, null);
+
+    const empty = mkdtempSync(join(tmpdir(), "goalbuddy-resume-empty-"));
+    try {
+      const none = runGoalMaker(["resume", "--json"], { cwd: empty });
+      assert.equal(none.status, 0, none.stderr || none.stdout);
+      assert.deepEqual(JSON.parse(none.stdout).boards, []);
+      const human = runGoalMaker(["resume"], { cwd: empty });
+      assert.match(human.stdout, /No GoalBuddy boards found/);
+    } finally {
+      rmSync(empty, { recursive: true, force: true });
+    }
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});

@@ -11,9 +11,9 @@ import {
 } from "node:fs";
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
-import { basename, dirname, join, resolve } from "node:path";
+import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import { homedir } from "node:os";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const packageRoot = resolve(__dirname, "../..");
@@ -137,6 +137,13 @@ async function main() {
       break;
     case "board":
       await board();
+      break;
+    case "resume":
+      if (wantsHelp()) {
+        usage();
+        break;
+      }
+      await resume();
       break;
     case "prompt":
       await prompt();
@@ -269,6 +276,7 @@ Usage:
   ${canonicalCliName} reset --target codex [--codex-home <path>] [--json]
   ${canonicalCliName} check-update [--json]
   ${canonicalCliName} board <docs/goals/slug> [--host <host>] [--port <port>] [--once] [--json]
+  ${canonicalCliName} resume [docs/goals/slug] [--json]
   ${canonicalCliName} prompt <docs/goals/slug> [--task T###] [--board <path/to/state.yaml>] [--json]
   ${canonicalCliName} parallel-plan <docs/goals/slug> [--json]
 
@@ -1192,6 +1200,68 @@ async function board() {
   }
   if (result.error) throw result.error;
   process.exit(result.status ?? 1);
+}
+
+async function resume() {
+  const boardLib = pathToFileURL(join(skillSource, "surfaces", "local-goal-board", "scripts", "lib", "goal-board.mjs")).href;
+  const { createBoardPayload } = await import(boardLib);
+  const explicit = positional(1);
+  const goalDirs = explicit ? [resolve(explicit)] : listGoalDirs(resolve("docs", "goals"));
+  const boards = goalDirs.map((goalDir) => describeBoard(goalDir, createBoardPayload));
+
+  if (hasFlag("--json")) {
+    printJson({ boards });
+    return;
+  }
+
+  if (!boards.length) {
+    console.log("No GoalBuddy boards found under docs/goals.");
+    console.log("Prepare one with $goal-prep (Codex) or /goal-prep (Claude Code).");
+    return;
+  }
+
+  console.log("GoalBuddy boards:");
+  for (const board of boards) {
+    console.log("");
+    console.log(`${board.title} — ${board.status} (${board.path})`);
+    if (board.active_task) {
+      console.log(`  Active task: ${board.active_task.id} (${board.active_task.type}) ${board.active_task.objective}`);
+      console.log("  Resume in any harness (Codex or Claude Code):");
+      console.log(`    ${board.run_command}`);
+      console.log(`  Full task prompt: npx ${canonicalCliName} prompt ${board.path}`);
+    } else {
+      console.log("  No active task.");
+    }
+  }
+}
+
+function listGoalDirs(root) {
+  if (!existsSync(root)) return [];
+  return readdirSync(root, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => join(root, entry.name))
+    .filter((dir) => existsSync(join(dir, "state.yaml")))
+    .sort();
+}
+
+function describeBoard(goalDir, createBoardPayload) {
+  const path = relative(process.cwd(), goalDir).split(sep).join("/") || ".";
+  try {
+    const payload = createBoardPayload(goalDir);
+    const activeTask = payload.tasks.find((task) => task.id === payload.goal.activeTask && task.active)
+      || payload.tasks.find((task) => task.active)
+      || null;
+    return {
+      path,
+      slug: payload.goal.slug,
+      title: payload.goal.title,
+      status: payload.goal.status,
+      active_task: activeTask ? { id: activeTask.id, type: activeTask.type, objective: activeTask.objective } : null,
+      run_command: `/goal Follow ${path}/goal.md.`,
+    };
+  } catch (error) {
+    return { path, slug: "", title: path, status: "unreadable", active_task: null, run_command: "", error: error.message };
+  }
 }
 
 async function prompt() {

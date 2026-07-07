@@ -46,6 +46,16 @@ Goal Prep creates the board and prints the exact `/goal` command to run next. Th
 
 In Claude Code, GoalBuddy installs a real `/goal` command that runs the execution loop. In Codex, native `/goal` is the separate OpenAI-gated feature GoalBuddy prepares boards for.
 
+## Cross-Harness Goals
+
+Harnesses churn; repos persist. A GoalBuddy board lives in your repo as plain files, so the goal outlives whichever tool started it: begin a goal in Codex, resume it in Claude Code tomorrow — or the other way around — with the same command.
+
+```bash
+npx goalbuddy resume
+```
+
+`resume` lists every live board in the repo with its status, active task, and the exact `/goal Follow docs/goals/<slug>/goal.md.` command to continue, which is identical in both harnesses. Receipts can record which harness performed each task, so the board's history survives the handoff intact.
+
 ## Codex Install Model
 
 For Codex, the canonical install is the native plugin plus bundled agents:
@@ -156,7 +166,7 @@ Multiple local boards reuse one readable `goalbuddy.localhost` hub with an in-he
 
 Custom external integrations should be built as ordinary repo work with a concrete implementation plan, not installed from a GoalBuddy catalog.
 
-See [GoalBuddy 0.4.0: Hardened Core and a Real /goal for Claude Code](docs/releases/0.4.0.md) for the latest release notes.
+See [GoalBuddy 0.4.0: Cross-Harness Goals](docs/releases/0.4.0.md) for the latest release notes.
 
 <p align="center">
   <img src="internal/assets/goalbuddy-live-board.jpg" alt="GoalBuddy local live board open next to Codex while Scout, Judge, and Worker tasks populate." width="100%">

@@ -1,7 +1,8 @@
 # Changelog
 
-## 0.4.0 — Hardened Core and a Real /goal for Claude Code (2026-07-05)
+## 0.4.0 — Cross-Harness Goals (2026-07-06)
 
+- **Goals now move between Codex and Claude Code.** The board has always been repo-native (`state.yaml` is the only truth), and 0.4.0 makes the handoff real: start a goal in one harness and resume it in the other with the same `/goal Follow docs/goals/<slug>/goal.md.` command. The new `goalbuddy resume` command discovers live boards in a repo and prints each goal's status, active task, and exact run command; the execution contract now states the handoff rule (resume from recorded state, never from chat history); and receipts may carry an optional `harness` field so a board's history shows which runtime performed each task.
 - **`/goal-prep` now actually surfaces as `/goal-prep` in Claude Code.** Claude Code names skills by directory, so previous installs listed the skill as `/goalbuddy` while every doc said `/goal-prep`. The skill now installs and ships as `goal-prep`; install/update migrates the legacy `~/.claude/skills/goalbuddy` directory away, and `goalbuddy doctor --target claude` reports `legacy_skill_present` until it is gone.
 - **Claude Code gets a real `/goal` command.** The plugin ships `commands/goal.md` and the CLI installs `~/.claude/commands/goal.md`, so the printed `/goal Follow docs/goals/<slug>/goal.md.` line runs a real command instead of relying on fuzzy skill matching.
 - **The skill contract is split by mode.** `SKILL.md` is now the prep contract plus the shared board model; `references/goal-execution.md` is the `/goal` runtime contract. The `/goal` command, the generated charter's PM loop, and the skill itself all point at the execution contract, and a policy test suite keeps the mode boundary clean.

@@ -278,7 +278,7 @@ function receiptSchema(role) {
   };
 }
 
-function formatPrompt(payload) {
+export function formatPrompt(payload) {
   const lines = [
     "GoalBuddy task prompt",
     "",

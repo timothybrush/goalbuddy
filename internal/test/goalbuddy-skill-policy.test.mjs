@@ -53,6 +53,8 @@ test("Goal Prep invocation boundary keeps $goal-prep prepare-only", () => {
     assert.match(text, /references\/goal-execution\.md/);
     assert.match(text, /Task ids must match the `T###` shape/);
     assert.match(text, /explicitly invokes `\$goal-prep` on a one-change task/);
+    assert.match(text, /Always start `state\.yaml` from `templates\/state\.yaml`/);
+    assert.match(text, /scan environment reality before seeding/);
   }
 });
 
@@ -82,6 +84,8 @@ test("the execution contract carries the /goal runtime rules", () => {
     assert.match(text, /never reconstruct progress from chat history/);
     assert.match(text, /optional `harness` field/);
     assert.match(text, /### Mixed Fleets/);
+    assert.match(text, /receipt may still be in flight/);
+    assert.match(text, /run the full goal oracle suite/);
     assert.match(text, /node <skill-path>\/scripts\/dispatch-task\.mjs docs\/goals\/<slug> --to codex/);
     assert.match(text, /Never dispatch externally by default/);
     assert.match(text, /The dispatcher never edits `state\.yaml`/);
@@ -114,7 +118,10 @@ test("slice policy is simple and mirrored across templates and agent payloads", 
   assert.match(canonicalState, /max_consecutive_tiny_tasks: 2/);
   assert.match(canonicalWorker, /model_reasoning_effort = "medium"/);
   assert.match(canonicalWorker, /complete the whole assigned slice/i);
+  assert.match(canonicalWorker, /Never stop with uncommitted changes and no receipt/);
+  assert.match(canonicalWorker, /"deviations": \[\]/);
   assert.match(canonicalJudge, /largest safe useful slice/i);
+  assert.match(canonicalJudge, /copy the plan section's own file list into allowed_files verbatim/);
 });
 
 test("Codex install keeps Goal Prep in the plugin and removes compatibility skill folders", () => {

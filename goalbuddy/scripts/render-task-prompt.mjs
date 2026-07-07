@@ -242,6 +242,7 @@ function receiptSchema(role) {
       changed_files: [],
       commands: [],
       summary: "<=120 words>",
+      deviations: [],
       remaining_blockers: [],
       verification_attempts: 1,
       stopped_because: null,

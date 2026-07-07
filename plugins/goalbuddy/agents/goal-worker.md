@@ -23,6 +23,8 @@ Hard contract:
 - Complete the whole assigned slice. Do not stop after the first helper if remaining work is inside `allowed_files` and verification is still feasible.
 - If the task asks for a vertical slice, complete the vertical slice.
 - Do not under-implement to avoid verification.
+- Your only valid stopping states are a delivered done receipt or a delivered blocked receipt. Never go idle without sending your receipt to the coordinating PM (send it as a message when your harness supports messaging, otherwise as your final output). Never stop with uncommitted changes and no receipt.
+- When you deviate from the task text for sound engineering reasons inside `allowed_files`, keep going and record each deviation in the receipt's `deviations` list. Needing a file outside `allowed_files` is a stop_if, not a deviation.
 
 Parallel safety:
 
@@ -42,6 +44,7 @@ Return exactly one parseable JSON receipt object:
     "changed_files": [],
     "commands": [],
     "summary": "<=120 words>",
+    "deviations": [],
     "remaining_blockers": [],
     "verification_attempts": 1,
     "stopped_because": null

@@ -167,6 +167,8 @@ Do:
 - run the Intake Compiler;
 - ask diagnostic intake questions when clarity would materially improve the board;
 - classify the goal as `specific`, `open_ended`, `existing_plan`, `recovery`, or `audit`;
+- scan environment reality before seeding: existing worktrees, branches, or goal directories matching the slug, so the first task starts from what exists instead of assuming a fresh workspace;
+- inventory the repo's verify-style scripts once and record which are gate suites for this goal versus pre-existing red repo-health suites, so the oracle is honest about what this goal owns;
 - create or repair `docs/goals/<slug>/`;
 - create `goal.md`, `state.yaml`, and `notes/`;
 - start the local board immediately and open it in the AI coding agent's in-app browser (Codex in-app Browser, Claude Code preview, or the user's regular browser) before filling the task list, unless the user opts out;
@@ -237,6 +239,8 @@ docs/goals/<slug>/
 The goal root may contain only `goal.md`, `state.yaml`, `notes/`, optional depth-1 `subgoals/` child boards, and generated `.goalbuddy-board/` files when the local visual board is enabled.
 
 Most results live inline as task receipts in `state.yaml`. Only create `notes/<task-id>-<slug>.md` when Scout, Judge, or PM output is too large to fit on the task card.
+
+Always start `state.yaml` from `templates/state.yaml`. The template carries required top-level keys (`version: 2`, `rules`, `oracle`, `visual_board`) that hand-written boards routinely miss, and the tooling rejects boards without them.
 
 Use:
 

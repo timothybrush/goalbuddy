@@ -158,6 +158,10 @@ receipt:
     - T005
 ```
 
+Subagent idle signals and receipt messages can arrive out of order. Treat a bare idle notification as "receipt may still be in flight": check again briefly before nudging, and verify against the working tree (for example `git status`) rather than assuming the receipt is missing. A worker with uncommitted changes and no delivered receipt has not reached a valid stopping state.
+
+For follow-up slices tightly coupled to a just-finished task, reusing the same still-available subagent — which retains the relevant context — is often cheaper and more accurate than a fresh spawn. Prefer it when the follow-up amends that worker's own output.
+
 For long findings or decisions, write `notes/<task-id>-<slug>.md` and point to it:
 
 ```yaml
@@ -292,6 +296,8 @@ Use `node <skill-path>/scripts/parallel-plan.mjs docs/goals/<slug>` when the use
 ## Completion
 
 Never complete because work looks substantial.
+
+At phase, risk, and final boundaries, run the full goal oracle suite — not only the commands named on the current task's card. Task-scoped re-runs miss regressions in suites the card never listed; the one regression a mid-phase Judge catches is usually exactly this kind.
 
 Completion is a Judge or PM audit task. The goal is done only when a final done Judge or PM receipt says the full original outcome is complete and maps completion to current receipts, verification, and the user's original outcome.
 

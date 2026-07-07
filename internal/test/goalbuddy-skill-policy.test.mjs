@@ -78,6 +78,9 @@ test("the execution contract carries the /goal runtime rules", () => {
     assert.match(text, /result: blocked/);
     assert.match(text, /blocked_reason/);
     assert.match(text, /do not widen its `allowed_files` mid-flight/);
+    assert.match(text, /Boards Move Between Harnesses/);
+    assert.match(text, /never reconstruct progress from chat history/);
+    assert.match(text, /optional `harness` field/);
   }
 });
 
@@ -146,6 +149,7 @@ test("receipt spec stays consistent with the shipped contracts", () => {
   assert.match(spec, /lists \*\*only passing commands\*\*/);
   assert.match(spec, /blocked_reason/);
   assert.match(spec, /`T` followed by exactly three digits/);
+  assert.match(spec, /harness: codex \| claude-code/);
   const execution = readFileSync("goalbuddy/references/goal-execution.md", "utf8");
   for (const field of ["worker_package", "blocked_reason", "changed_files", "full_outcome_complete"]) {
     assert.match(execution, new RegExp(field), `${field} missing from execution contract`);

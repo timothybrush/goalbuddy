@@ -26,6 +26,12 @@ If the raw input is detailed and already contains a plan, the first board task s
 
 The target is not literal certainty. It is the highest practical likelihood of a successful goal run: preserve the user's intent, avoid the likely misfire, pick the earliest responsible phase, require proof, and keep advancing safe work until a final audit proves the full outcome.
 
+## Boards Move Between Harnesses
+
+A board may arrive mid-run from a different harness: a goal started in Codex can be resumed in Claude Code and vice versa. The handoff contract is simple because `state.yaml` is the only truth. On resume, read the charter and the board and continue from the recorded state — never reconstruct progress from chat history, and never re-plan work that already has a done receipt. Receipts written by another harness are as authoritative as your own.
+
+Any receipt may include an optional `harness` field (for example `codex` or `claude-code`) naming the runtime that performed the task, so the board's history shows who did what across a handoff. When you know which harness you are, stamp it.
+
 ## `/goal` Default Bias: Users Want Work Done
 
 This section applies after the user starts `/goal Follow docs/goals/<slug>/goal.md.` It does not apply to the initial `$goal-prep` board-preparation turn.

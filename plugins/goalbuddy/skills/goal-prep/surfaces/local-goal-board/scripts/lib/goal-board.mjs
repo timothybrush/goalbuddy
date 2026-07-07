@@ -123,6 +123,7 @@ export function normalizeTask(task, index) {
     column: columnForStatus(status),
     type: cleanText(task.type || "pm"),
     assignee: cleanText(task.assignee || ""),
+    harness: cleanText(task.receipt?.harness || task.harness || ""),
     active: status === "active",
     inputs: normalizeStringList(task.inputs),
     constraints: normalizeStringList(task.constraints),
@@ -394,6 +395,7 @@ function parseTaskSubsets(text) {
     id: parseYamlScalar(findTaskScalar(block, "id") || ""),
     type: parseYamlScalar(findTaskScalar(block, "type") || "pm"),
     assignee: parseYamlScalar(findTaskScalar(block, "assignee") || ""),
+    harness: parseYamlScalar(findTaskScalar(block, "harness") || ""),
     status: parseYamlScalar(findTaskScalar(block, "status") || "queued"),
     title: parseYamlScalar(findTaskScalar(block, "title") || ""),
     objective: parseYamlScalar(findTaskScalar(block, "objective") || ""),
@@ -1539,6 +1541,7 @@ h1 {
 .badge.status-done { background: var(--green-bg); color: var(--green-text); }
 .badge.status-blocked { background: var(--red-bg); color: var(--red-text); }
 .badge.role { background: var(--yellow-bg); color: var(--yellow-text); }
+.badge.harness { background: var(--blue-bg); color: var(--blue-text); font-family: ui-monospace, monospace; }
 .badge.subgoal { background: #ece8ff; color: #5c43c6; }
 .badge.subgoal.status-blocked { background: var(--red-bg); color: var(--red-text); }
 .badge.subgoal.status-done { background: var(--green-bg); color: var(--green-text); }
@@ -2163,6 +2166,7 @@ function renderCard(task) {
 
   const footer = el("div", "card-footer");
   footer.append(el("span", "badge role", task.assignee || task.type || "PM"));
+  if (task.harness) footer.append(el("span", "badge harness", task.harness));
   if (task.subgoal) footer.append(subgoalBadge(task.subgoal));
   if (task.receipt?.present) footer.append(el("span", "badge status-done", "Receipt"));
 

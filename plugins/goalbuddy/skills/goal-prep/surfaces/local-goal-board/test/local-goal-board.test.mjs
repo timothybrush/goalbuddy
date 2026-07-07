@@ -345,6 +345,8 @@ test("writes a minimal GoalBuddy web app into the goal directory", () => {
   assert.match(js, /renderBoardError/);
   assert.match(js, /renderBoardWarning/);
   assert.match(js, /parseWarning/);
+  assert.match(js, /"badge harness"/);
+  assert.match(css, /\.badge\.harness/);
   assert.match(js, /boardOptionLabel/);
   assert.match(js, /duration: changedColumn \? 980 : 520/);
   assert.equal(logo.subarray(1, 4).toString("ascii"), "PNG");
@@ -886,6 +888,50 @@ test("deduplicated board paths report matching slugs", async () => {
     } finally {
       await server.close();
     }
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("task payloads carry the harness that did or will do the work", () => {
+  const root = mkdtempSync(join(tmpdir(), "goalbuddy-harness-badge-"));
+  try {
+    const goalDir = join(root, "fleet");
+    mkdirSync(join(goalDir, "notes"), { recursive: true });
+    writeFileSync(join(goalDir, "state.yaml"), `version: 2
+goal:
+  title: "Fleet goal"
+  slug: "fleet"
+  kind: specific
+  tranche: "test"
+  status: active
+active_task: T002
+tasks:
+  - id: T001
+    type: worker
+    assignee: Worker
+    status: done
+    objective: "Done by codex."
+    receipt:
+      result: done
+      harness: codex
+      summary: "done"
+      changed_files:
+        - src/widget.mjs
+      commands:
+        - cmd: npm test
+          status: pass
+  - id: T002
+    type: scout
+    assignee: Scout
+    status: active
+    harness: gemini
+    objective: "Assigned to gemini."
+    receipt: null
+`);
+    const payload = createBoardPayload(goalDir);
+    assert.equal(payload.tasks.find((task) => task.id === "T001").harness, "codex");
+    assert.equal(payload.tasks.find((task) => task.id === "T002").harness, "gemini");
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

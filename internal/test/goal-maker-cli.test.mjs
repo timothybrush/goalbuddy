@@ -326,6 +326,7 @@ checks:
     const report = JSON.parse(result.stdout);
     assert.equal(report.metadata.recommended_agent, "goal_worker");
     assert.equal(report.metadata.required_spawn_agent_type, "goal_worker");
+    assert.equal(report.metadata.required_claude_subagent_type, "goal-worker");
     assert.equal(report.metadata.sandbox, "workspace-write");
     assert.deepEqual(report.metadata.goal_oracle, {
       signal: "Prompt includes the active task contract without dumping old receipts.",
@@ -349,10 +350,64 @@ checks:
     const human = runGoalMaker(["prompt", goal]);
     assert.equal(human.status, 0, human.stderr || human.stdout);
     assert.match(human.stdout, /Codex spawn_agent agent_type: goal_worker/);
-    assert.match(human.stdout, /Do not substitute generic scout, worker, or judge agents/);
+    assert.match(human.stdout, /Claude Code Agent tool subagent_type: goal-worker/);
+    assert.match(human.stdout, /Do not substitute generic scout, worker, judge, Explore, or general-purpose agents/);
     assert.match(human.stdout, /After one wait_agent timeout/);
     assert.match(human.stdout, /goal_oracle/);
     assert.match(human.stdout, /slice_policy/);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("prompt maps every GoalBuddy role for Codex and Claude Code", () => {
+  const root = mkdtempSync(join(tmpdir(), "goalbuddy-role-routing-"));
+  try {
+    const roles = [
+      ["scout", "goal_scout", "goal-scout"],
+      ["worker", "goal_worker", "goal-worker"],
+      ["judge", "goal_judge", "goal-judge"],
+      ["pm", null, null],
+    ];
+
+    for (const [role, codexType, claudeType] of roles) {
+      const goal = join(root, role);
+      mkdirSync(goal, { recursive: true });
+      writeFileSync(join(goal, "state.yaml"), `version: 2
+goal:
+  title: "${role} routing"
+  slug: "${role}-routing"
+  kind: specific
+  tranche: "Route one task."
+  status: active
+agents:
+  scout: unknown
+  worker: unknown
+  judge: unknown
+active_task: T001
+tasks:
+  - id: T001
+    type: ${role}
+    assignee: ${role === "pm" ? "PM" : role[0].toUpperCase() + role.slice(1)}
+    status: active
+    objective: "Exercise ${role} routing."
+    allowed_files: []
+    verify: []
+    stop_if: []
+    receipt: null
+`);
+
+      const json = runGoalMaker(["prompt", goal, "--json"]);
+      assert.equal(json.status, 0, json.stderr || json.stdout);
+      const report = JSON.parse(json.stdout);
+      assert.equal(report.metadata.required_spawn_agent_type, codexType);
+      assert.equal(report.metadata.required_claude_subagent_type, claudeType);
+
+      const human = runGoalMaker(["prompt", goal]);
+      assert.equal(human.status, 0, human.stderr || human.stdout);
+      assert.match(human.stdout, new RegExp(`Codex spawn_agent agent_type: ${codexType || "do not spawn; run as PM"}`));
+      assert.match(human.stdout, new RegExp(`Claude Code Agent tool subagent_type: ${claudeType || "do not spawn; run as PM"}`));
+    }
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

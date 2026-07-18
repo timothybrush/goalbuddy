@@ -299,6 +299,8 @@ Use `node <skill-path>/scripts/render-task-prompt.mjs docs/goals/<slug>` to rend
 
 When dispatching Codex subagents from a GoalBuddy prompt, the `required_spawn_agent_type` is mandatory. Use that exact `spawn_agent` `agent_type` (`goal_scout`, `goal_worker`, or `goal_judge`). Do not substitute generic `scout`, `worker`, or `judge` agents; if the required GoalBuddy agent is unavailable, stop spawning and continue as PM fallback or ask the operator to run the GoalBuddy CLI through their install channel with `agents` or `install`. After one `wait_agent` timeout with no visible allowed-file changes, stop waiting, record the timeout, and recover deterministically instead of waiting forever.
 
+When dispatching Claude Code subagents, the `required_claude_subagent_type` is mandatory. Use the Agent tool with that exact `subagent_type` (`goal-scout`, `goal-worker`, or `goal-judge`). Do not substitute `Explore`, `general-purpose`, or another generic agent: the named GoalBuddy agents carry the role prompt, tool limits, and receipt contract. If `state.yaml` records that agent as `unknown`, attempt the exact harness-specific agent once; `unknown` is not evidence that the agent is unavailable. Continue as PM fallback only after the harness reports that exact agent unavailable or returns an error. The `missing` and `bundled_not_installed` states retain the fallback behavior defined in `SKILL.md`.
+
 Use `node <skill-path>/scripts/parallel-plan.mjs docs/goals/<slug>` when the user explicitly asks for parallel agent work. It is read-only: it recommends safe Scout/Judge handoffs and Worker handoffs only when write scopes are known and disjoint. It does not mutate `state.yaml`, create sub-goals, apply receipts, or spawn agents.
 
 ## Completion

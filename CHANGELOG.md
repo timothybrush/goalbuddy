@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1: Installed Contract Fixes (2026-07-18)
+
+- **npm installs include the full execution contract.** The package now ships the canonical `goalbuddy/` directory as one boundary, including `references/goal-execution.md`. A packed-artifact regression test compares the canonical and plugin skill trees and performs a clean Claude Code install from the generated tarball.
+- **Claude Code prompts name the exact GoalBuddy roles.** Rendered task prompts now include exact Claude Code `subagent_type` values alongside Codex `agent_type` values. The execution contract forbids generic `Explore` or `general-purpose` substitution, and an `unknown` agent state now requires one exact-role attempt before PM fallback.
+- **Cross-harness routing stays mechanically aligned.** Tests cover Scout, Worker, Judge, and PM prompt metadata and human-readable spawn instructions, while the generated plugin skill remains byte-identical to the canonical payload.
+
 ## 0.4.0 — Cross-Harness Goals (2026-07-06)
 
 - **Goals now move between Codex and Claude Code.** The board has always been repo-native (`state.yaml` is the only truth), and 0.4.0 makes the handoff real: start a goal in one harness and resume it in the other with the same `/goal Follow docs/goals/<slug>/goal.md.` command. The new `goalbuddy resume` command discovers live boards in a repo and prints each goal's status, active task, and exact run command; the execution contract now states the handoff rule (resume from recorded state, never from chat history); and receipts may carry an optional `harness` field so a board's history shows which runtime performed each task.

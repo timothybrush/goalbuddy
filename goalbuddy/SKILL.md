@@ -357,16 +357,16 @@ If the goal is audit, keep the active task read-only. Queue execution only if th
 
 ## Agents
 
-Scout, Worker, and Judge templates are bundled with GoalBuddy. They may also be installed as user or project agent configs, but a board must not claim `installed` unless the preparer verified the matching agent files.
+Scout, Worker, and Judge templates are bundled with GoalBuddy as Codex `goal_*.toml` files and Claude Code `goal-*.md` files. They may also be installed as user or project agent configs, but a board must not claim `installed` unless the preparer verified the matching agent files.
 
 Use these `state.yaml` values:
 
 | State | Meaning | Next action |
 |---|---|---|
 | `installed` | Matching Scout/Worker/Judge agent configs were found in the expected user or project agent location. | Continue. |
-| `bundled_not_installed` | The bundled `goal_*.toml` template exists with the skill, but no matching installed agent config was verified. | `/goal` can proceed through PM fallback. If dedicated agents are required before `/goal`, run the GoalBuddy CLI through the user's install channel with `agents`. |
+| `bundled_not_installed` | A bundled Codex `goal_*.toml` or Claude Code `goal-*.md` template exists, but no matching installed agent config was verified. | `/goal` can proceed through PM fallback. If dedicated agents are required before `/goal`, run the GoalBuddy CLI through the user's install channel with `agents`. |
 | `missing` | Neither an installed config nor the bundled template was verified. | `/goal` can proceed through PM fallback. If dedicated agents are required before `/goal`, run the GoalBuddy CLI through the user's install channel with `install`. |
-| `unknown` | Agent availability could not be checked. | `/goal` can proceed through PM fallback. To check before `/goal`, run the GoalBuddy CLI through the user's install channel with `doctor`. |
+| `unknown` | Agent availability could not be checked. | `/goal` must attempt the exact harness-specific GoalBuddy agent once. Use PM fallback only after the harness reports that exact agent unavailable or returns an error. To check before `/goal`, run the GoalBuddy CLI through the user's install channel with `doctor`. |
 
 Non-`installed` states are warnings, not false failures, because the main `/goal` PM can perform Scout/Judge/Worker-shaped tasks directly when dedicated agents are unavailable.
 

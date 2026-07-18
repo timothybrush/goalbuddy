@@ -318,7 +318,7 @@ function agentStatusWarning(agent, status) {
   if (status === "missing") {
     return `agents.${agent} is missing; /goal can continue through PM fallback, but dedicated ${agentLabel} delegation is unavailable. If dedicated agents are required before /goal, run the GoalBuddy CLI through the user's install channel with: install`;
   }
-  return `agents.${agent} is unknown; /goal can continue through PM fallback, but dedicated ${agentLabel} delegation was not verified. To check before /goal, run the GoalBuddy CLI through the user's install channel with: doctor`;
+  return `agents.${agent} is unknown; /goal must attempt the exact harness-specific ${agentLabel} agent once, then use PM fallback only if the harness reports it unavailable or returns an error. To check before /goal, run the GoalBuddy CLI through the user's install channel with: doctor`;
 }
 
 for (const { agent, status } of agentStatuses) {

@@ -55,6 +55,8 @@ test("Goal Prep invocation boundary keeps $goal-prep prepare-only", () => {
     assert.match(text, /explicitly invokes `\$goal-prep` on a one-change task/);
     assert.match(text, /Always start `state\.yaml` from `templates\/state\.yaml`/);
     assert.match(text, /scan environment reality before seeding/);
+    assert.match(text, /Claude Code `goal-\*\.md` files/);
+    assert.match(text, /`unknown` \| Agent availability could not be checked\. \| `\/goal` must attempt the exact harness-specific GoalBuddy agent once/);
   }
 });
 
@@ -90,6 +92,10 @@ test("the execution contract carries the /goal runtime rules", () => {
     assert.match(text, /node <skill-path>\/scripts\/dispatch-task\.mjs docs\/goals\/<slug> --to codex/);
     assert.match(text, /Never dispatch externally by default/);
     assert.match(text, /The dispatcher never edits `state\.yaml`/);
+    assert.match(text, /required_claude_subagent_type/);
+    assert.match(text, /Agent tool with that exact `subagent_type` \(`goal-scout`, `goal-worker`, or `goal-judge`\)/);
+    assert.match(text, /Do not substitute `Explore`, `general-purpose`, or another generic agent/);
+    assert.match(text, /`unknown` is not evidence that the agent is unavailable/);
   }
 });
 

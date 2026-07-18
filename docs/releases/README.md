@@ -2,6 +2,7 @@
 
 Historical release notes live next to this process doc:
 
+- [0.4.1: Installed Contract Fixes](0.4.1.md)
 - [0.4.0: Cross-Harness Goals](0.4.0.md)
 - [0.3.9: Marketplace and Board Runtime Polish](0.3.9.md)
 - [0.3.8: Board Hub Guardrails](0.3.8.md)
@@ -29,13 +30,14 @@ The workflow path in this repo is:
 Or configure the same trust relationship from the npm CLI:
 
 ```bash
-npx --yes npm@11.13.0 trust github goalbuddy \
+npx --yes npm@^11.15.0 trust github goalbuddy \
   --repo tolibear/goalbuddy \
   --file npm-publish.yml \
+  --allow-publish \
   --yes
 ```
 
-This command requires npm owner authentication and may print an `EOTP` browser/OTP URL. Complete that npm authentication step, then rerun the same command if needed. The `npx --yes npm@11.13.0 trust ...` form is intentional; using `npx -p npm@latest npm trust ...` can resolve to an older global npm binary that does not expose the `trust` command.
+This command requires npm owner authentication and may print an `EOTP` browser/OTP URL. Complete that npm authentication step, then rerun the same command if needed. npm `11.15.0` or newer is required for `npm trust`, and `--allow-publish` explicitly limits the relationship to package publishing.
 
 After the trusted publisher works, use npm package settings to require 2FA and disallow tokens for publishing. Keep `goal-maker` published during the migration window.
 
@@ -53,7 +55,7 @@ node internal/cli/check-publish-version.mjs
 ```
 
 3. Commit and push the version change.
-4. Create and publish a GitHub release whose tag matches the package version, for example `v0.2.11`.
+4. Create and publish a GitHub release whose tag matches the package version, for example `v0.4.1`. The workflow refuses to publish when the release tag and `package.json` version differ.
 5. Confirm the GitHub Actions workflow `Publish npm package` completed.
 6. Verify npm:
 

@@ -171,6 +171,7 @@ test("accepts explicit non-installed agent states with actionable warnings", () 
     assert.match(result.stdout.warnings.join("\n"), /install channel with: agents/i);
     assert.match(result.stdout.warnings.join("\n"), /install channel with: install/i);
     assert.match(result.stdout.warnings.join("\n"), /install channel with: doctor/i);
+    assert.match(result.stdout.warnings.join("\n"), /agents\.judge is unknown; \/goal must attempt the exact harness-specific Judge agent once/i);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }

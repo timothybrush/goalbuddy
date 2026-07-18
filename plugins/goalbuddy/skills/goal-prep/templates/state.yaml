@@ -48,7 +48,7 @@ rules:
 
 agents:
   # installed | bundled_not_installed | missing | unknown
-  # If non-installed, /goal can continue through PM fallback; install agents before /goal only when dedicated delegation is required.
+  # missing and bundled_not_installed use PM fallback; unknown requires one exact-role attempt before fallback.
   scout: unknown
   worker: unknown
   judge: unknown

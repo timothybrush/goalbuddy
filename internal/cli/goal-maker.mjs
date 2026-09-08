@@ -955,12 +955,12 @@ Usage:
   ${canonicalCliName} plugin install [--source <marketplace-source>] [--codex-home <path>] [--json]
 
 Default source:
-  tolibear/goalbuddy
+  tolimarchuk/goalbuddy
 `);
 }
 
 function installPlugin({ quiet = false } = {}) {
-  const source = optionValue("--source") || "tolibear/goalbuddy";
+  const source = optionValue("--source") || "tolimarchuk/goalbuddy";
   const pluginSource = join(packageRoot, "plugins", pluginName);
   const pluginManifestPath = join(pluginSource, ".codex-plugin", "plugin.json");
   if (!existsSync(pluginManifestPath)) {
